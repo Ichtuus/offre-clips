@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action https://formsubmit.co">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://formsubmit.co; object-src 'none'; base-uri 'none'; form-action https://script.google.com">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Résilier votre contrat — Nicolas Diarra EI</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -34,16 +34,11 @@
   <p>Remplissez le formulaire, vérifiez le récapitulatif, puis envoyez la notification. Vous recevez aussitôt un accusé de réception par e-mail, puis un e-mail qui confirme la date de fin de votre contrat.</p>
 
   <!-- Fonction de résiliation : saisie, récapitulatif, puis « Notification de la résiliation » (art. D215-1 à D215-3 C. conso). -->
-  <form id="form-resiliation" class="fenetre formulaire" action="https://formsubmit.co/devichtus.pro@gmail.com" method="POST">
+  <form id="form-resiliation" class="fenetre formulaire" action="https://script.google.com/macros/s/A_REMPLACER/exec" method="POST" data-type="resiliation">
     <div class="barre">resilier_votre_contrat.exe</div>
     <div class="contenu">
-      <input type="hidden" name="_subject" value="Notification de résiliation">
-      <input type="hidden" name="_template" value="table">
-      <input type="hidden" name="_next" value="">
-      <!-- Piège à robots : champ invisible, un humain ne le remplit jamais (FormSubmit ignore alors l'envoi). -->
+      <!-- Piège à robots : champ invisible, un humain ne le remplit jamais (l'envoi est alors ignoré). -->
       <input class="piege" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <input type="hidden" name="_url" value="">
-      <input type="hidden" name="_autoresponse" value="Accusé de réception : votre notification de résiliation a bien été reçue. Vous recevrez sous peu un e-mail confirmant la date de fin de votre contrat. — Nicolas Diarra EI">
 
       <div class="saisie">
         <label for="res-nom">Nom et prénom, ou nom de l'entreprise</label>

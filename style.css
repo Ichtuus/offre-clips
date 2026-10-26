@@ -332,3 +332,8 @@ mark.todo { background: #ff2d55; color: #fff; padding: 0 .3em; font-family: var(
 
 /* Piège à robots : hors de l'écran, invisible pour les humains */
 .formulaire .piege { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+
+/* Échec d'envoi : solutions de repli */
+.actions-erreur { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.actions-erreur .bouton-terminal { margin: 0; font-size: 19px; text-decoration: none; display: inline-block; }
+.statut p { margin: 0 0 8px; }

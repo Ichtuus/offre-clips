@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action https://formsubmit.co">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://formsubmit.co; object-src 'none'; base-uri 'none'; form-action https://script.google.com">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Tes vidéos longues en clips prêts à poster — Nicolas Diarra</title>
   <meta name="description" content="Clips verticaux sous-titrés, titrés, avec miniature, tirés de tes vidéos longues. Livrés sous 48 h ouvrées. Abonnement sans engagement.">
@@ -108,16 +108,11 @@
 <section id="essai">
   <div class="crochets"><h2 class="grand">3 Clips Gratuits</h2></div>
   <p class="centre-texte chapeau">Envoie-moi le lien d'une de tes vidéos. Tu reçois 3 clips sous 48 h ouvrées. Si ça te plaît, on parle de la suite. Sinon, tu les gardes.</p>
-  <form class="fenetre formulaire" action="https://formsubmit.co/devichtus.pro@gmail.com" method="POST">
+  <form class="fenetre formulaire" action="https://script.google.com/macros/s/A_REMPLACER/exec" method="POST" data-type="essai">
     <div class="barre">essai_gratuit.exe</div>
     <div class="contenu">
-      <input type="hidden" name="_subject" value="Essai : 3 clips gratuits">
-      <input type="hidden" name="_template" value="table">
-      <input type="hidden" name="_next" value="">
-      <!-- Piège à robots : champ invisible, un humain ne le remplit jamais (FormSubmit ignore alors l'envoi). -->
+      <!-- Piège à robots : champ invisible, un humain ne le remplit jamais (l'envoi est alors ignoré). -->
       <input class="piege" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <input type="hidden" name="_url" value="">
-      <input type="hidden" name="_autoresponse" value="Bien reçu ! Je regarde ta vidéo et je t'envoie tes 3 clips sous 48 h ouvrées. — Nicolas">
       <label for="essai-video">Lien de ta vidéo (YouTube, Drive…)</label>
       <input id="essai-video" name="video" type="url" required placeholder="https://" maxlength="500" autocomplete="url">
       <label for="essai-chaine">Nom de ta chaîne</label>

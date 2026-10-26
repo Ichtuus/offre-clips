@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action https://formsubmit.co">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://formsubmit.co; object-src 'none'; base-uri 'none'; form-action https://script.google.com">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Renoncer au contrat (rétractation) — Nicolas Diarra EI</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -35,16 +35,11 @@
   <p>Remplissez le formulaire puis confirmez votre rétractation. Un accusé de réception vous est envoyé aussitôt par e-mail.</p>
 
   <!-- Fonction de rétractation : « Renoncer au contrat ici », puis « Confirmer la rétractation » (art. L221-21 C. conso). -->
-  <form id="form-retractation" class="fenetre formulaire" action="https://formsubmit.co/devichtus.pro@gmail.com" method="POST">
+  <form id="form-retractation" class="fenetre formulaire" action="https://script.google.com/macros/s/A_REMPLACER/exec" method="POST" data-type="retractation">
     <div class="barre">renoncer_au_contrat_ici.exe</div>
     <div class="contenu">
-      <input type="hidden" name="_subject" value="Rétractation">
-      <input type="hidden" name="_template" value="table">
-      <input type="hidden" name="_next" value="">
-      <!-- Piège à robots : champ invisible, un humain ne le remplit jamais (FormSubmit ignore alors l'envoi). -->
+      <!-- Piège à robots : champ invisible, un humain ne le remplit jamais (l'envoi est alors ignoré). -->
       <input class="piege" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <input type="hidden" name="_url" value="">
-      <input type="hidden" name="_autoresponse" value="Accusé de réception : votre rétractation a bien été reçue. Le remboursement des sommes dues interviendra au plus tard dans les 14 jours. — Nicolas Diarra EI">
       <input type="hidden" name="declaration" value="Je vous notifie par la présente ma rétractation du contrat portant sur la prestation de services ci-dessous.">
       <label for="ret-nom">Nom et prénom</label>
       <input id="ret-nom" name="nom" type="text" required maxlength="120" autocomplete="name">

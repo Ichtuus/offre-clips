@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action https://formsubmit.co">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com https://formsubmit.co; object-src 'none'; base-uri 'none'; form-action https://script.google.com">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Politique de confidentialité — Nicolas Diarra EI</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -41,8 +41,8 @@
   <h2>Qui y a accès</h2>
   <p>Nicolas Diarra, et les prestataires techniques suivants, chacun pour ce qui le concerne :</p>
   <ul>
-    <li><strong>FormSubmit</strong> (Devro LABS) : transmission par e-mail des formulaires du site, si vous les utilisez. Sa page d'envoi utilise Google reCAPTCHA contre les robots ;</li>
-    <li><strong>Google LLC</strong> (États-Unis, service Gmail) : réception et envoi des e-mails ;</li>
+    <li><strong>Google LLC</strong> (États-Unis, services Gmail, Google Sheets et Apps Script) : enregistrement des demandes envoyées par les formulaires du site, réception et envoi des e-mails ;</li>
+    <li><strong>FormSubmit</strong> (Devro LABS) : transmission de secours des formulaires par e-mail, uniquement si l'enregistrement principal est indisponible ;</li>
     <li><strong>Anthropic PBC</strong> (États-Unis) : analyse du texte de la transcription pour aider à choisir les passages, ponctuer les sous-titres et proposer des titres. La vidéo elle-même n'est pas envoyée ; la transcription est réalisée sur l'ordinateur du Prestataire ;</li>
     <li><strong>Google LLC / YouTube</strong> (États-Unis) : uniquement si vous choisissez la publication sur YouTube ;</li>
     <li><strong>GitHub, Inc.</strong> (États-Unis) : hébergement de ce site, qui enregistre des données techniques de connexion (adresse IP) pour sa sécurité.</li>
@@ -63,8 +63,9 @@
   <p>Vous pouvez demander l'accès à vos données, leur rectification, leur effacement, leur portabilité, la limitation de leur traitement, ou vous opposer à leur traitement. Écrivez à <a href="mailto:devichtus.pro@gmail.com">devichtus.pro@gmail.com</a> ou à l'adresse ci-dessus. Une réponse vous est apportée sous un mois.</p>
   <p>Si vous estimez que vos droits ne sont pas respectés, vous pouvez adresser une réclamation à la CNIL : 3 place de Fontenoy, TSA 80715, 75334 Paris Cedex 07 — <a href="https://www.cnil.fr">www.cnil.fr</a>.</p>
 
-  <h2>Cookies</h2>
-  <p>Ce site ne dépose aucun cookie et ne contient aucun outil de mesure d'audience ni aucun contenu tiers. À l'envoi d'un formulaire, vous passez par une page de FormSubmit, qui applique sa propre politique et peut utiliser Google reCAPTCHA.</p>
+  <h2>Cookies et stockage dans votre navigateur</h2>
+  <p>Ce site ne dépose aucun cookie et ne contient aucun outil de mesure d'audience ni aucun contenu tiers.</p>
+  <p>Quand vous envoyez un formulaire, votre demande est gardée temporairement dans le stockage de votre navigateur, pour pouvoir être renvoyée automatiquement si l'envoi échoue. Elle est effacée dès que l'envoi réussit, et au plus tard après 30 jours. Ce stockage sert uniquement à transmettre la demande que vous avez faite ; il ne nécessite donc pas de consentement.</p>
 </main>
 
 <footer>
@@ -81,5 +82,6 @@
   </nav>
 </footer>
 
+<script src="formulaires.js" defer></script>
 </body>
 </html>

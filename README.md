@@ -7,7 +7,8 @@ Site statique (HTML + CSS, aucune dépendance) hébergé sur GitHub Pages.
 - `mentions-legales.html`, `confidentialite.html`
 - `resilier.html` : fonction « Résilier votre contrat » avec récapitulatif (obligatoire, art. L215-1-1 C. conso)
 - `retractation.html` : fonction « Renoncer au contrat ici » (obligatoire depuis le 19 juin 2026, art. L221-21 C. conso)
-- `formulaires.js` : récapitulatif de résiliation, page de retour après envoi
+- `formulaires.js` : envoi fiable des formulaires (voir « Formulaires »), récapitulatif de résiliation
+- `apps-script/Code.gs` : script Google qui enregistre les demandes et envoie les e-mails
 - `merci.html` : page affichée après l'envoi d'un formulaire
 - `style.css` : direction artistique reprise de typesafe.ai (couleurs et tailles relevées dans leur code)
 - `fonts/` : Inter Tight, JetBrains Mono, VT323, sous licence OFL, hébergées ici (aucune requête vers Google)
@@ -27,19 +28,37 @@ Tout ce qui manque est surligné en rouge sur le site : `grep -n "todo" *.html`
 
 ## Formulaires
 
-Les trois formulaires (essai, résiliation, rétractation) sont dans les pages et envoyés par **FormSubmit** (gratuit, sans compte) vers devichtus.pro@gmail.com. Chaque envoi déclenche un accusé de réception automatique à l'expéditeur.
+Objectif : ne jamais perdre une demande (`formulaires.js`).
 
-**Activation, une fois par formulaire :** envoyer soi-même chaque formulaire depuis le site en ligne, puis cliquer sur le lien d'activation reçu sur devichtus.pro@gmail.com. Les envois faits avant l'activation sont conservés 30 jours par FormSubmit.
+1. Au clic, la demande est d'abord gardée dans le navigateur du visiteur.
+2. Envoi au **script Google** (`apps-script/Code.gs`, adresse dans l'attribut `action` des formulaires). Il enregistre la demande dans la feuille « Leads » (un onglet par type), **puis** t'envoie un e-mail et envoie l'accusé de réception au visiteur depuis ton Gmail. La colonne « Accusé envoyé » indique quand un accusé est à envoyer à la main.
+3. En cas de panne (réseau, délai de 15 s, erreur HTTP, réponse invalide) : **envoi de secours par FormSubmit** (`SECOURS` dans `formulaires.js`).
+4. Si tout échoue : la demande reste dans le navigateur et repart automatiquement à la prochaine visite, sur n'importe quelle page, ou au retour du réseau. Le visiteur voit aussi les boutons « Réessayer », « Envoyer par e-mail » (message prérempli) et « Copier ma demande ».
 
-**Sécurité et comportement :**
-- bouton grisé et « Envoi en cours… » dès le premier clic ; les clics suivants sont ignorés ;
-- message d'erreur si l'appareil est hors ligne ou si l'envoi n'aboutit pas en 20 s ; bouton remis en état au retour arrière ;
-- côté FormSubmit : reCAPTCHA (laissé actif, il est aussi nécessaire à l'accusé de réception automatique) et champ piège `_honey` contre les robots ;
-- longueur maximale sur chaque champ ;
-- politique de sécurité du contenu (CSP) dans chaque page : scripts, styles et polices du site uniquement, formulaires envoyables seulement vers formsubmit.co ;
-- le récapitulatif de résiliation insère les saisies en texte brut (`textContent`), jamais en HTML.
+Une référence unique par demande évite les doublons dans la feuille lors des renvois. Un refus (e-mail invalide, trop de demandes) s'affiche sans tenter le secours.
 
-Limite : l'envoi est un POST classique, pas de l'AJAX (sinon FormSubmit n'envoie pas d'accusé de réception). Si FormSubmit renvoie une erreur, elle s'affiche sur sa propre page.
+### Mise en place du script Google (une fois, environ 5 minutes)
+
+1. Avec le compte devichtus.pro@gmail.com, créer une feuille Google Sheets nommée « Leads ».
+2. Menu Extensions → Apps Script. Remplacer le contenu par celui de `apps-script/Code.gs`, puis enregistrer.
+3. Déployer → Nouveau déploiement → type « Application Web ». Exécuter en tant que : **Moi**. Qui a accès : **Tout le monde**. Déployer.
+4. Autoriser l'accès. Google affiche « application non validée » : Paramètres avancés → Accéder au projet. C'est ton propre script.
+5. Copier l'URL qui finit par `/exec` et la mettre dans l'attribut `action` des 3 formulaires (`index.html`, `resilier.html`, `retractation.html`), à la place de `A_REMPLACER`.
+
+Après une modification de `Code.gs` : Déployer → Gérer les déploiements → modifier → nouvelle version. L'URL ne change pas.
+
+### FormSubmit (secours)
+
+- Remplacer l'adresse e-mail de `SECOURS` par l'identifiant aléatoire reçu dans l'e-mail d'activation : ton adresse disparaît du code public.
+- Le mode utilisé (AJAX) peut demander sa propre activation : faire un envoi de test en coupant le script Google, puis cliquer sur le lien reçu.
+
+### Sécurité
+
+- piège à robots `_honey` (ignoré par le script) ; limites : 5 demandes par adresse et par heure, 80 accusés par jour (quota Gmail : 100) ;
+- l'accusé de réception a un texte fixe, écrit dans le script : impossible de s'en servir pour envoyer autre chose ;
+- saisies tronquées à 500 caractères ; protection contre l'injection de formules dans Sheets (`=`, `+`, `-`, `@`) ;
+- CSP dans chaque page : ressources du site uniquement ; connexions vers Google et FormSubmit seulement ;
+- affichages construits en `textContent`, jamais en HTML.
 
 Après une résiliation, il faut encore envoyer soi-même au client un e-mail qui confirme la date de fin de son contrat (obligation légale).
 
