@@ -47,6 +47,8 @@ Une référence unique par demande évite les doublons dans la feuille lors des 
 
 Après une modification de `Code.gs` : Déployer → Gérer les déploiements → modifier → nouvelle version. L'URL ne change pas.
 
+Accusés de réception : e-mails HTML aux couleurs du site (tableaux et styles en ligne, polices de repli), avec une version texte. Textes dans `TYPES` (`accuse`), sans rien reprendre de la saisie du visiteur. Pour voir le rendu : dans l'éditeur Apps Script, choisir la fonction `testerAccuse` puis Exécuter : les 3 accusés (essai, résiliation, rétractation) arrivent sur ton adresse.
+
 ### FormSubmit (secours)
 
 - Remplacer l'adresse e-mail de `SECOURS` par l'identifiant aléatoire reçu dans l'e-mail d'activation : ton adresse disparaît du code public.
@@ -55,7 +57,7 @@ Après une modification de `Code.gs` : Déployer → Gérer les déploiements �
 ### Sécurité
 
 - piège à robots `_honey` (ignoré par le script) ; limites : 5 demandes par adresse et par heure, 80 accusés par jour (quota Gmail : 100) ;
-- l'accusé de réception a un texte fixe, écrit dans le script : impossible de s'en servir pour envoyer autre chose ;
+- l'accusé de réception a un texte fixe, écrit dans le script, sans aucune donnée saisie par le visiteur : impossible de s'en servir pour envoyer un texte ou un lien à quelqu'un d'autre ;
 - saisies tronquées à 500 caractères ; protection contre l'injection de formules dans Sheets (`=`, `+`, `-`, `@`) ;
 - CSP dans chaque page : ressources du site uniquement ; connexions vers Google et FormSubmit seulement ;
 - affichages construits en `textContent`, jamais en HTML.
