@@ -1,0 +1,24 @@
+/* Généré par charte/synchroniser.mjs depuis charte/theme.json : ne pas modifier ici. */
+@font-face { font-family: "Inter Tight"; src: url("charte/fonts/InterTight.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url("charte/fonts/JetBrainsMono.woff2") format("woff2"); font-weight: 100 800; font-display: swap; }
+@font-face { font-family: "VT323"; src: url("charte/fonts/VT323.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+
+:root {
+  --fond: #fefefe;
+  --encre: #1e1e1e;
+  --encre-douce: #1e1e1edb;
+  --gris-fonce: #3d3d3d;
+  --gris-fenetre: #dedede;
+  --gris-filet: #c4c4c4;
+  --gris-trait: #858585;
+  --rose: #f386a1;
+  --magenta: #d45bb6;
+  --fuchsia: #e551ba;
+  --violet: #9a6cf0;
+  --ciel-haut: #7aa8d6;
+  --ciel-bas: #b3cde9;
+
+  --grotesk: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --terminal: "VT323", "JetBrains Mono", monospace;
+}

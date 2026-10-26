@@ -11,7 +11,7 @@ Site statique (HTML + CSS, aucune dépendance) hébergé sur GitHub Pages.
 - `apps-script/Code.gs` : script Google qui enregistre les demandes et envoie les e-mails
 - `merci.html` : page affichée après l'envoi d'un formulaire
 - `style.css` : direction artistique reprise de typesafe.ai (couleurs et tailles relevées dans leur code)
-- `fonts/` : Inter Tight, JetBrains Mono, VT323, sous licence OFL, hébergées ici (aucune requête vers Google)
+- `charte/` : identité unique (`theme.json`) et polices Inter Tight, JetBrains Mono, VT323, sous licence OFL, hébergées ici (aucune requête vers Google) ; `theme.css` en est généré
 
 Aperçu local : `python3 -m http.server 8765` puis http://localhost:8765
 
@@ -25,6 +25,25 @@ Tout ce qui manque est surligné en rouge sur le site : `grep -n "todo" *.html`
 - [ ] Section avant/après retirée faute d'exemples. La remettre (`git log -- index.html`, commit « Retrait de la section avant/après ») avec de vrais exemples, uniquement avec l'**accord écrit** du créateur.
 - [ ] Vérifier que les clips et transcriptions sont bien supprimés 90 jours après livraison (engagement de la politique de confidentialité). Aujourd'hui, `clipper clean` ne supprime que la source et l'audio.
 - [ ] Activité déclarée : code APE 62.01Z (programmation informatique). Ajouter le montage vidéo à l'activité déclarée (démarche gratuite sur formalites.entreprises.gouv.fr).
+
+## Charte graphique (source unique)
+
+Couleurs, polices, signature, contact et tarifs sont définis **une seule fois** dans `charte/theme.json` (polices dans `charte/fonts/`, licences OFL). Tout le reste en est généré :
+
+| Où | Fichier généré |
+|---|---|
+| Site | `theme.css` (variables et polices, chargé avant `style.css`, qui ne garde que la mise en page) |
+| E-mails (accusés, prospection) | bloc `CHARTE` entre `// <charte>` et `// </charte>` dans `apps-script/Code.gs` |
+| Page de livraison Clipper | `Clipper/clipper/presentation/charte.json` et `fonts/` |
+
+Après une modification de la charte :
+
+```bash
+node charte/synchroniser.mjs              # régénère tout (Clipper : ../../Clipper, ou --clipper CHEMIN)
+node charte/synchroniser.mjs --verifier   # signale ce qui n'est plus à jour, sans rien écrire
+```
+
+Puis recoller `Code.gs` dans Apps Script (nouvelle version) et commiter les deux dépôts. Les prix de `index.html` sont écrits à la main : le script vérifie qu'ils correspondent à la charte. Un test de Clipper échoue si sa copie n'est plus à jour.
 
 ## Formulaires
 
@@ -48,6 +67,18 @@ Une référence unique par demande évite les doublons dans la feuille lors des 
 Après une modification de `Code.gs` : Déployer → Gérer les déploiements → modifier → nouvelle version. L'URL ne change pas.
 
 Accusés de réception : e-mails HTML aux couleurs du site (tableaux et styles en ligne, polices de repli), avec une version texte. Textes dans `TYPES` (`accuse`), sans rien reprendre de la saisie du visiteur. Pour voir le rendu : dans l'éditeur Apps Script, choisir la fonction `testerAccuse` puis Exécuter : les 3 accusés (essai, résiliation, rétractation) arrivent sur ton adresse.
+
+### Prospection (onglet « Prospects », menu « Clips »)
+
+À l'ouverture de la feuille, un menu **Clips** apparaît (recharger la feuille après avoir collé un nouveau `Code.gs`).
+
+1. **Clips → Créer ou réparer l'onglet Prospects** (une fois) : colonnes Envoyer, E-mail, Prénom, Chaîne, Lien de la page, Phrase perso, Envoyé le, Ne plus contacter, Résultat.
+2. Une ligne par créateur. « Lien de la page » : l'adresse Netlify de sa livraison (`clipper export ID --offre`) ; l'e-mail affiche `apercu.jpg` de ce dossier (miniature du meilleur clip), cliquable. Prénom, chaîne et phrase perso sont facultatifs.
+3. **Clips → Aperçu : m'envoyer le premier prospect coché** pour voir l'e-mail chez toi, sans rien changer dans la feuille.
+4. **Clips → Envoyer les prospects cochés** : confirmation, envoi depuis ton Gmail, puis « Envoyé le » rempli et la case décochée. Jamais deux fois la même adresse ; jamais une adresse marquée « Ne plus contacter » (sur n'importe quelle ligne). On garde 20 envois du quota Gmail du jour pour les accusés de réception.
+5. Quelqu'un répond STOP : cocher « Ne plus contacter » sur sa ligne.
+
+Ces fonctions ne sont accessibles que depuis la feuille ou l'éditeur, avec ton compte : le site n'y a pas accès. Tout texte de la feuille est échappé, et seuls les liens `https://` sont acceptés.
 
 ### FormSubmit (secours)
 

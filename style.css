@@ -5,26 +5,8 @@
      Die Grotesk C       → Inter Tight
      LisaTerminal Paper  → VT323
      JetBrains Mono      → JetBrains Mono (la même) */
-@font-face { font-family: "Inter Tight"; src: url("fonts/InterTight.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
-@font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono.woff2") format("woff2"); font-weight: 100 800; font-display: swap; }
-@font-face { font-family: "VT323"; src: url("fonts/VT323.woff2") format("woff2"); font-weight: 400; font-display: swap; }
-
 :root {
-  /* Couleurs (jetons du site de référence) */
-  --fond: #fefefe;
-  --encre: #1e1e1e;
-  --encre-douce: #1e1e1edb;
-  --gris-fonce: #3d3d3d;
-  --gris-fenetre: #dedede;
-  --gris-filet: #c4c4c4;
-  --rose: #f386a1;
-  --magenta: #d45bb6;
-
-  /* Familles */
-  --grotesk: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
-  --terminal: "VT323", "JetBrains Mono", monospace;
-
+  /* Couleurs et polices : theme.css, généré depuis charte/theme.json. Ici, la mise en page seulement. */
   --marge: clamp(20px, 7vw, 100px);
 }
 
@@ -153,12 +135,12 @@ h1, h2, h3 { font-family: var(--grotesk); font-weight: 500; letter-spacing: 0; m
 }
 .heros::before {
   background:
-    radial-gradient(ellipse 30% 75% at 4% 20%, #e551ba 0%, transparent 72%),
+    radial-gradient(ellipse 30% 75% at 4% 20%, var(--fuchsia) 0%, transparent 72%),
     radial-gradient(ellipse 22% 50% at 22% 60%, #d45bb6cc 0%, transparent 72%),
-    radial-gradient(ellipse 30% 75% at 96% 18%, #e551ba 0%, transparent 72%),
-    radial-gradient(ellipse 20% 50% at 78% 50%, #9a6cf0 0%, transparent 72%),
-    radial-gradient(ellipse 18% 45% at 99% 64%, #f386a1 0%, transparent 72%),
-    linear-gradient(to bottom, #7aa8d6, #b3cde9);
+    radial-gradient(ellipse 30% 75% at 96% 18%, var(--fuchsia) 0%, transparent 72%),
+    radial-gradient(ellipse 20% 50% at 78% 50%, var(--violet) 0%, transparent 72%),
+    radial-gradient(ellipse 18% 45% at 99% 64%, var(--rose) 0%, transparent 72%),
+    linear-gradient(to bottom, var(--ciel-haut), var(--ciel-bas));
 }
 /* Grain par-dessus (bruit SVG en ligne, aucune image externe) */
 .heros::after {
@@ -262,7 +244,7 @@ section { padding: 100px 0; }
 .fin-tableau {
   height: 40px;
   margin-bottom: 10px;
-  background-image: radial-gradient(#858585 1px, transparent 1.2px);
+  background-image: radial-gradient(var(--gris-trait) 1px, transparent 1.2px);
   background-size: 5px 5px;
 }
 
@@ -321,8 +303,8 @@ mark.todo { background: #ff2d55; color: #fff; padding: 0 .3em; font-family: var(
 /* Envoi en cours : bouton grisé, curseur d'attente */
 .bouton-terminal:disabled,
 .bouton-terminal:disabled:hover {
-  background: #858585;
-  border-color: #858585;
+  background: var(--gris-trait);
+  border-color: var(--gris-trait);
   color: var(--gris-fenetre);
   cursor: wait;
 }

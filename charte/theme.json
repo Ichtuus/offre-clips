@@ -1,0 +1,59 @@
+{
+  "_lisez_moi": "Source unique de l'identité : site, page de livraison Clipper, e-mails. Après une modification : node charte/synchroniser.mjs",
+  "marque": {
+    "signature": "Nicolas Diarra — Clips",
+    "raison_sociale": "Nicolas Diarra EI",
+    "prenom": "Nicolas",
+    "site": "https://ichtuus.github.io/offre-clips/",
+    "contact": "devichtus.pro@gmail.com"
+  },
+  "couleurs": {
+    "fond": "#fefefe",
+    "encre": "#1e1e1e",
+    "encre-douce": "#1e1e1edb",
+    "gris-fonce": "#3d3d3d",
+    "gris-fenetre": "#dedede",
+    "gris-filet": "#c4c4c4",
+    "gris-trait": "#858585",
+    "rose": "#f386a1",
+    "magenta": "#d45bb6",
+    "fuchsia": "#e551ba",
+    "violet": "#9a6cf0",
+    "ciel-haut": "#7aa8d6",
+    "ciel-bas": "#b3cde9"
+  },
+  "polices": {
+    "grotesk": {
+      "famille": "Inter Tight",
+      "fichier": "InterTight.woff2",
+      "licence": "OFL-intertight.txt",
+      "graisses": "100 900",
+      "repli": "\"Helvetica Neue\", Arial, sans-serif",
+      "repli_email": "'Helvetica Neue',Helvetica,Arial,sans-serif"
+    },
+    "mono": {
+      "famille": "JetBrains Mono",
+      "fichier": "JetBrainsMono.woff2",
+      "licence": "OFL-jetbrainsmono.txt",
+      "graisses": "100 800",
+      "repli": "ui-monospace, Menlo, monospace",
+      "repli_email": "Menlo,Consolas,'Courier New',monospace"
+    },
+    "terminal": {
+      "famille": "VT323",
+      "fichier": "VT323.woff2",
+      "licence": "OFL-vt323.txt",
+      "graisses": "400",
+      "repli": "\"JetBrains Mono\", monospace",
+      "repli_email": "Menlo,Consolas,'Courier New',monospace"
+    }
+  },
+  "offre": {
+    "lien": "https://ichtuus.github.io/offre-clips/#prix",
+    "formules": [
+      {"nom": "Hebdo", "detail": "4 vidéos longues par mois, environ 30 à 40 clips.", "prix": "290 €/mois"},
+      {"nom": "Intensif", "detail": "8 vidéos longues par mois, environ 60 à 80 clips.", "prix": "490 €/mois"}
+    ],
+    "mentions": "Résiliable à tout moment. TVA non applicable, art. 293 B du CGI."
+  }
+}
