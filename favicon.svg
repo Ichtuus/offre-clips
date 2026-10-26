@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- Fond rose du site, fenêtre rétro au format vertical d'un clip, bouton lecture -->
+  <rect width="32" height="32" fill="#f386a1"/>
+  <rect x="9" y="3" width="18" height="29" fill="#b86c7f"/>
+  <rect x="7" y="1" width="18" height="29" fill="#1e1e1e"/>
+  <rect x="9" y="7" width="14" height="21" fill="#dedede"/>
+  <polygon points="12,11 12,24 21,17.5" fill="#1e1e1e" shape-rendering="geometricPrecision"/>
+</svg>
