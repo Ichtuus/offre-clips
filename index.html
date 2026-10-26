@@ -127,9 +127,14 @@
           <span class="prix">0 €</span>
         </div>
         <div class="ligne">
-          <span><span class="etiquette">Mensuel</span></span>
-          <p><mark class="todo">[N]</mark> vidéos longues par mois, tout ce qui est inclus, une série de retouches par clip. <strong>Résiliable à tout moment.</strong></p>
-          <span class="prix"><mark class="todo">[PRIX]</mark> €/mois</span>
+          <span><span class="etiquette">Hebdo</span></span>
+          <p>4 vidéos longues par mois, soit une par semaine (environ 30 à 40 clips). Tout ce qui est inclus, une série de retouches par clip. <strong>Résiliable à tout moment.</strong></p>
+          <span class="prix">290 €/mois</span>
+        </div>
+        <div class="ligne">
+          <span><span class="etiquette">Intensif</span></span>
+          <p>8 vidéos longues par mois (environ 60 à 80 clips). Même contenu. <strong>Résiliable à tout moment.</strong></p>
+          <span class="prix">490 €/mois</span>
         </div>
         <div class="fin-tableau"></div>
         <p class="note">Prix nets. TVA non applicable, art. 293 B du CGI. Conditions : <a href="cgv.html">CGV</a>.</p>
@@ -141,10 +146,22 @@
 <section id="essai">
   <div class="crochets"><h2 class="grand">3 Clips Gratuits</h2></div>
   <p class="centre-texte chapeau">Envoie-moi le lien d'une de tes vidéos. Tu reçois 3 clips sous 48 h ouvrées. Si ça te plaît, on parle de la suite. Sinon, tu les gardes.</p>
-  <div class="actions">
-    <!-- Remplacer par le lien du formulaire Tally (voir README). -->
-    <a class="action" href="mailto:[EMAIL]?subject=3%20clips%20gratuits&amp;body=Lien%20de%20la%20vid%C3%A9o%20%3A%20%0ANom%20de%20la%20cha%C3%AEne%20%3A%20">Envoyer Ma Vidéo</a>
-  </div>
+  <form class="fenetre formulaire" action="https://formsubmit.co/devichtus.pro@gmail.com" method="POST">
+    <div class="barre">essai_gratuit.exe</div>
+    <div class="contenu">
+      <input type="hidden" name="_subject" value="Essai : 3 clips gratuits">
+      <input type="hidden" name="_template" value="table">
+      <input type="hidden" name="_next" value="">
+      <input type="hidden" name="_autoresponse" value="Bien reçu ! Je regarde ta vidéo et je t'envoie tes 3 clips sous 48 h ouvrées. — Nicolas">
+      <label for="essai-video">Lien de ta vidéo (YouTube, Drive…)</label>
+      <input id="essai-video" name="video" type="url" required placeholder="https://">
+      <label for="essai-chaine">Nom de ta chaîne</label>
+      <input id="essai-chaine" name="chaine" type="text" required>
+      <label for="essai-email">Ton e-mail</label>
+      <input id="essai-email" name="email" type="email" required>
+      <button class="bouton-terminal" type="submit">Envoyer ma vidéo</button>
+    </div>
+  </form>
   <p class="centre-texte note">Ton e-mail et le lien de ta vidéo servent uniquement à te répondre et à préparer tes clips. Détails dans la <a href="confidentialite.html">politique de confidentialité</a>.</p>
 </section>
 
@@ -153,7 +170,7 @@
 <footer>
   <div class="fenetre">
     <div class="barre">Nicolas Diarra EI</div>
-    <div class="contenu">78, avenue des Champs-Élysées, bureau 326, 75008 Paris<br>SIRET <mark class="todo">[SIRET]</mark><br>TVA non applicable, art. 293 B du CGI</div>
+    <div class="contenu">78, avenue des Champs-Élysées, bureau 326, 75008 Paris<br>SIRET 931 656 698 00038<br>TVA non applicable, art. 293 B du CGI</div>
   </div>
   <nav>
     <a href="mentions-legales.html">Mentions légales</a>
@@ -164,5 +181,6 @@
   </nav>
 </footer>
 
+<script src="formulaires.js" defer></script>
 </body>
 </html>

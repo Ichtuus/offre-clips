@@ -5,8 +5,10 @@ Site statique (HTML + CSS, aucune dépendance) hébergé sur GitHub Pages.
 - `index.html` : l'offre (accroche, exemples, inclus, prix, essai gratuit)
 - `cgv.html` : conditions générales de vente, clients particuliers et professionnels
 - `mentions-legales.html`, `confidentialite.html`
-- `resilier.html` : fonction « Résilier votre contrat » (obligatoire, art. L215-1-1 C. conso)
+- `resilier.html` : fonction « Résilier votre contrat » avec récapitulatif (obligatoire, art. L215-1-1 C. conso)
 - `retractation.html` : fonction « Renoncer au contrat ici » (obligatoire depuis le 19 juin 2026, art. L221-21 C. conso)
+- `formulaires.js` : récapitulatif de résiliation, page de retour après envoi
+- `merci.html` : page affichée après l'envoi d'un formulaire
 - `style.css` : direction artistique reprise de typesafe.ai (couleurs et tailles relevées dans leur code)
 - `fonts/` : Inter Tight, JetBrains Mono, VT323, sous licence OFL, hébergées ici (aucune requête vers Google)
 
@@ -14,33 +16,22 @@ Aperçu local : `python3 -m http.server 8765` puis http://localhost:8765
 
 ## À compléter avant la mise en ligne
 
-Tout ce qui manque est surligné en rouge sur le site (`<mark class="todo">`). Pour tout retrouver :
-`grep -n "todo\|\[EMAIL\]" *.html`
+Tout ce qui manque est surligné en rouge sur le site : `grep -n "todo" *.html`
 
-- [ ] `[SIRET]` : sur toutes les pages (pied de page, CGV, mentions légales)
-- [ ] `[EMAIL]` et `[TÉLÉPHONE]` : obligatoires dans les mentions légales et les CGV
-- [ ] `[PRIX]` et `[N]` (nombre de vidéos par mois) : `index.html`
-- [ ] `[MOYEN DE PAIEMENT]` : CGV, article 6
-- [ ] **Médiateur de la consommation** : CGV, article 18. Obligatoire dès qu'on vend à des particuliers. Il faut adhérer à un médiateur agréé avant la mise en ligne (liste officielle : https://www.economie.gouv.fr/mediation-conso). Comptez environ 50 à 150 € par an selon l'organisme.
+- [ ] `[TÉLÉPHONE]` : obligatoire (mentions légales, CGV)
+- [ ] **Médiateur de la consommation** : CGV, article 18. Obligatoire dès qu'on vend à des particuliers. Il faut adhérer à un médiateur agréé avant la mise en ligne (liste officielle : https://www.economie.gouv.fr/mediation-conso).
 - [ ] Assurance RC Pro : CGV, article 15. Indiquer l'assureur, ou supprimer la ligne si vous n'en avez pas.
-- [ ] `[FOURNISSEUR DE MESSAGERIE]` : confidentialité (par exemple Google pour Gmail)
-- [ ] Durée de conservation des clips (`[90]` jours) : confidentialité. Elle doit correspondre à ce que fait réellement `clipper clean`.
-- [ ] Les 3 exemples avant/après : uniquement avec l'**accord écrit** du créateur
-- [ ] Les liens Tally (ci-dessous) à la place des liens `mailto:`
+- [ ] Les 3 exemples avant/après, uniquement avec l'**accord écrit** du créateur
+- [ ] Vérifier que les clips et transcriptions sont bien supprimés 90 jours après livraison (engagement de la politique de confidentialité). Aujourd'hui, `clipper clean` ne supprime que la source et l'audio.
+- [ ] Activité déclarée : code APE 62.01Z (programmation informatique). Ajouter le montage vidéo à l'activité déclarée (démarche gratuite sur formalites.entreprises.gouv.fr).
 
-## Formulaires Tally (gratuit, hébergé en UE)
+## Formulaires
 
-Remplacer le `href` des boutons marqués `<!-- Remplacer par le lien du formulaire Tally -->`.
+Les trois formulaires (essai, résiliation, rétractation) sont dans les pages et envoyés par **FormSubmit** (gratuit, sans compte) vers devichtus.pro@gmail.com. Chaque envoi déclenche un accusé de réception automatique à l'expéditeur.
 
-1. **Essai** : lien de la vidéo, nom de la chaîne, e-mail. Ajouter une ligne qui renvoie vers la politique de confidentialité.
-2. **Résiliation**, conforme à l'article D215-1 et suivants :
-   - page 1 : nom et prénom (ou entreprise), e-mail, référence client, date souhaitée ;
-   - page 2 : récapitulatif des réponses ;
-   - bouton d'envoi intitulé exactement **« Notification de la résiliation »** ;
-   - vous devez confirmer la réception à l'expéditeur, puis lui envoyer la date de fin par e-mail.
-3. **Rétractation** : nom, e-mail, date de commande ; bouton d'envoi **« Confirmer la rétractation »** ; accusé de réception par e-mail sans délai.
+**Activation, une seule fois, après la mise en ligne :** envoyer soi-même le formulaire d'essai depuis le site en ligne. FormSubmit envoie alors un e-mail d'activation à devichtus.pro@gmail.com : cliquer sur le lien. Avant cette activation, les envois ne sont pas transmis.
 
-L'e-mail de confirmation automatique au répondant n'est pas forcément compris dans l'offre gratuite de Tally. Sinon, répondez vous-même tout de suite à chaque demande.
+Après une résiliation, il faut encore envoyer soi-même au client un e-mail qui confirme la date de fin de son contrat (obligation légale).
 
 ## Mise en ligne sur GitHub Pages
 

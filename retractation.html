@@ -27,18 +27,36 @@
     </div>
   </div>
 
-  <p>Le formulaire vous demande vos nom et prénom, votre adresse e-mail et la date de votre commande. Vous confirmez ensuite votre rétractation. Un accusé de réception vous est envoyé par e-mail sans délai.</p>
+  <p>Remplissez le formulaire puis confirmez votre rétractation. Un accusé de réception vous est envoyé aussitôt par e-mail.</p>
 
-  <!-- Remplacer par le lien du formulaire Tally « Rétractation » (voir README). -->
-  <p><a class="action" href="mailto:[EMAIL]?subject=R%C3%A9tractation&amp;body=Je%20vous%20notifie%20par%20la%20pr%C3%A9sente%20ma%20r%C3%A9tractation%20du%20contrat%20portant%20sur%20la%20prestation%20de%20services%20ci-dessous.%0ACommand%C3%A9%20le%20%3A%20%0ANom%20%3A%20%0AAdresse%20%3A%20">Renoncer au contrat ici</a></p>
+  <!-- Fonction de rétractation : « Renoncer au contrat ici », puis « Confirmer la rétractation » (art. L221-21 C. conso). -->
+  <form id="form-retractation" class="fenetre formulaire" action="https://formsubmit.co/devichtus.pro@gmail.com" method="POST">
+    <div class="barre">renoncer_au_contrat_ici.exe</div>
+    <div class="contenu">
+      <input type="hidden" name="_subject" value="Rétractation">
+      <input type="hidden" name="_template" value="table">
+      <input type="hidden" name="_next" value="">
+      <input type="hidden" name="_autoresponse" value="Accusé de réception : votre rétractation a bien été reçue. Le remboursement des sommes dues interviendra au plus tard dans les 14 jours. — Nicolas Diarra EI">
+      <input type="hidden" name="declaration" value="Je vous notifie par la présente ma rétractation du contrat portant sur la prestation de services ci-dessous.">
+      <label for="ret-nom">Nom et prénom</label>
+      <input id="ret-nom" name="nom" type="text" required>
+      <label for="ret-email">Adresse e-mail</label>
+      <input id="ret-email" name="email" type="email" required>
+      <label for="ret-date">Date de la commande</label>
+      <input id="ret-date" name="date_commande" type="date" required>
+      <label for="ret-ref">Référence client ou prestation concernée (facultatif)</label>
+      <input id="ret-ref" name="reference" type="text">
+      <button class="bouton-terminal" type="submit">Confirmer la rétractation</button>
+    </div>
+  </form>
 
-  <p>Vous pouvez aussi envoyer le <a href="cgv.html#formulaire">formulaire type de rétractation</a>, ou toute déclaration claire, par e-mail à <mark class="todo">[EMAIL]</mark> ou par courrier au 78, avenue des Champs-Élysées, bureau 326, 75008 Paris. Les règles complètes figurent à l'article 13 des <a href="cgv.html">CGV</a>.</p>
+  <p>Vous pouvez aussi envoyer le <a href="cgv.html#formulaire">formulaire type de rétractation</a>, ou toute déclaration claire, par e-mail à <a href="mailto:devichtus.pro@gmail.com">devichtus.pro@gmail.com</a> ou par courrier au 78, avenue des Champs-Élysées, bureau 326, 75008 Paris. Les règles complètes figurent à l'article 13 des <a href="cgv.html">CGV</a>.</p>
 </main>
 
 <footer>
   <div class="fenetre">
     <div class="barre">Nicolas Diarra EI</div>
-    <div class="contenu">78, avenue des Champs-Élysées, bureau 326, 75008 Paris<br>SIRET <mark class="todo">[SIRET]</mark><br>TVA non applicable, art. 293 B du CGI</div>
+    <div class="contenu">78, avenue des Champs-Élysées, bureau 326, 75008 Paris<br>SIRET 931 656 698 00038<br>TVA non applicable, art. 293 B du CGI</div>
   </div>
   <nav>
     <a href="mentions-legales.html">Mentions légales</a>
@@ -49,5 +67,6 @@
   </nav>
 </footer>
 
+<script src="formulaires.js" defer></script>
 </body>
 </html>

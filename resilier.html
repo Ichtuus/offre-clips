@@ -26,18 +26,45 @@
     </div>
   </div>
 
-  <p>Le formulaire vous demande vos nom et prénom (ou le nom de votre entreprise), votre adresse e-mail, votre référence client si vous en avez une, et la date de résiliation souhaitée. Vous vérifiez ensuite le récapitulatif avant d'envoyer la notification. Vous recevez une confirmation de réception, puis un e-mail qui indique la date de fin de votre contrat.</p>
+  <p>Remplissez le formulaire, vérifiez le récapitulatif, puis envoyez la notification. Vous recevez aussitôt un accusé de réception par e-mail, puis un e-mail qui confirme la date de fin de votre contrat.</p>
 
-  <!-- Remplacer par le lien du formulaire Tally « Résiliation » (voir README). -->
-  <p><a class="action" href="mailto:[EMAIL]?subject=R%C3%A9siliation%20de%20mon%20contrat&amp;body=Nom%20et%20pr%C3%A9nom%20(ou%20entreprise)%20%3A%20%0AR%C3%A9f%C3%A9rence%20client%20%3A%20%0ADate%20de%20r%C3%A9siliation%20souhait%C3%A9e%20%3A%20">Résilier votre contrat</a></p>
+  <!-- Fonction de résiliation : saisie, récapitulatif, puis « Notification de la résiliation » (art. D215-1 à D215-3 C. conso). -->
+  <form id="form-resiliation" class="fenetre formulaire" action="https://formsubmit.co/devichtus.pro@gmail.com" method="POST">
+    <div class="barre">resilier_votre_contrat.exe</div>
+    <div class="contenu">
+      <input type="hidden" name="_subject" value="Notification de résiliation">
+      <input type="hidden" name="_template" value="table">
+      <input type="hidden" name="_next" value="">
+      <input type="hidden" name="_autoresponse" value="Accusé de réception : votre notification de résiliation a bien été reçue. Vous recevrez sous peu un e-mail confirmant la date de fin de votre contrat. — Nicolas Diarra EI">
 
-  <p>Vous pouvez aussi résilier par e-mail à <mark class="todo">[EMAIL]</mark> ou par courrier au 78, avenue des Champs-Élysées, bureau 326, 75008 Paris. Les règles complètes figurent à l'article 12 des <a href="cgv.html">CGV</a>.</p>
+      <div class="saisie">
+        <label for="res-nom">Nom et prénom, ou nom de l'entreprise</label>
+        <input id="res-nom" name="nom" type="text" required>
+        <label for="res-email">Adresse e-mail</label>
+        <input id="res-email" name="email" type="email" required>
+        <label for="res-ref">Référence client (si vous en avez une)</label>
+        <input id="res-ref" name="reference" type="text">
+        <label for="res-date">Date de résiliation souhaitée (vide : fin du mois en cours)</label>
+        <input id="res-date" name="date_souhaitee" type="date">
+        <button class="bouton-terminal" type="button" data-verifier>Vérifier ma demande</button>
+      </div>
+
+      <div class="recap" hidden>
+        <p>Récapitulatif :</p>
+        <dl></dl>
+        <button class="bouton-terminal secondaire" type="button" data-modifier>Modifier</button>
+        <button class="bouton-terminal" type="submit">Notification de la résiliation</button>
+      </div>
+    </div>
+  </form>
+
+  <p>Vous pouvez aussi résilier par e-mail à <a href="mailto:devichtus.pro@gmail.com">devichtus.pro@gmail.com</a> ou par courrier au 78, avenue des Champs-Élysées, bureau 326, 75008 Paris. Les règles complètes figurent à l'article 12 des <a href="cgv.html">CGV</a>.</p>
 </main>
 
 <footer>
   <div class="fenetre">
     <div class="barre">Nicolas Diarra EI</div>
-    <div class="contenu">78, avenue des Champs-Élysées, bureau 326, 75008 Paris<br>SIRET <mark class="todo">[SIRET]</mark><br>TVA non applicable, art. 293 B du CGI</div>
+    <div class="contenu">78, avenue des Champs-Élysées, bureau 326, 75008 Paris<br>SIRET 931 656 698 00038<br>TVA non applicable, art. 293 B du CGI</div>
   </div>
   <nav>
     <a href="mentions-legales.html">Mentions légales</a>
@@ -48,5 +75,6 @@
   </nav>
 </footer>
 
+<script src="formulaires.js" defer></script>
 </body>
 </html>
