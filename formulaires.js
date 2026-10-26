@@ -7,7 +7,7 @@
 //    visite ; le visiteur peut aussi réessayer ou l'envoyer depuis sa messagerie.
 
 const CONTACT = 'devichtus.pro@gmail.com';
-// Envoi de secours. Remplacer l'adresse par l'identifiant aléatoire donné par FormSubmit.
+// Envoi de secours si le script Google ne répond pas.
 const SECOURS = 'https://formsubmit.co/ajax/devichtus.pro@gmail.com';
 const DELAI_MS = 15000;
 const CLE_ATTENTE = 'envois-en-attente';

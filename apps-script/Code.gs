@@ -2,7 +2,7 @@
 // prévient Nicolas par e-mail, puis envoie l'accusé de réception au visiteur.
 // La demande est enregistrée AVANT les e-mails : si un envoi échoue, rien n'est perdu.
 // Envoie aussi les e-mails de prospection depuis l'onglet « Prospects » (menu « Clips » de la feuille).
-// Déploiement : voir README.md, section « Formulaires ».
+// Déploiement : voir README.md.
 
 // <charte> Généré par charte/synchroniser.mjs depuis charte/theme.json : ne pas modifier ici.
 const CHARTE = {
@@ -316,7 +316,7 @@ function testerAccuse() {
 }
 
 // --- Prospection : onglet « Prospects » et menu « Clips » ------------------------------
-// Ces fonctions ne sont appelables que depuis la feuille (menu) ou l'éditeur, avec ton compte :
+// Ces fonctions ne sont appelables que depuis la feuille (menu) ou l'éditeur, avec le compte propriétaire :
 // le site (doPost) n'y a pas accès. Les textes de la feuille sont quand même échappés.
 
 const ONGLET_PROSPECTS = 'Prospects';
