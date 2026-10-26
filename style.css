@@ -1,0 +1,289 @@
+/* Valeurs relevées dans le code de typesafe.ai (site Framer) : couleurs,
+   tailles, interlignages et approches de lettres de leurs styles de texte.
+   Leurs polices de titre (Die Grotesk C, LisaTerminal Paper) sont payantes :
+   remplacées par des polices libres (OFL) hébergées ici, aucune requête externe.
+     Die Grotesk C       → Inter Tight
+     LisaTerminal Paper  → VT323
+     JetBrains Mono      → JetBrains Mono (la même) */
+@font-face { font-family: "Inter Tight"; src: url("fonts/InterTight.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono.woff2") format("woff2"); font-weight: 100 800; font-display: swap; }
+@font-face { font-family: "VT323"; src: url("fonts/VT323.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+
+:root {
+  /* Couleurs (jetons du site de référence) */
+  --fond: #fefefe;
+  --encre: #1e1e1e;
+  --encre-douce: #1e1e1edb;
+  --gris-fonce: #3d3d3d;
+  --gris-fenetre: #dedede;
+  --gris-filet: #c4c4c4;
+  --rose: #f386a1;
+  --magenta: #d45bb6;
+
+  /* Familles */
+  --grotesk: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --terminal: "VT323", "JetBrains Mono", monospace;
+
+  --marge: clamp(20px, 7vw, 100px);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--fond);
+  color: var(--encre);
+  font: 400 17px/1.2 var(--grotesk);   /* texte courant : 17 px, 120 %, +0,02 em */
+  letter-spacing: .02em;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; }
+
+/* --- Navigation : boîtes blanches collées en haut ----------------------- */
+.nav {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+.nav div { display: flex; gap: 5px; }
+.nav a {
+  pointer-events: auto;
+  background: var(--fond);
+  color: var(--encre);
+  text-decoration: none;
+  font: 500 18px/36px var(--grotesk);
+  letter-spacing: 0;
+  padding: 0 6px;
+  height: 36px;
+}
+.nav a.noir { background: var(--encre); color: var(--fond); }
+.nav .centre { position: absolute; left: 50%; transform: translateX(-50%); }
+@media (max-width: 720px) { .nav .centre { display: none; } }
+
+/* --- Titres : Medium 500, interlignage 80 %, approche 0 ----------------- */
+h1, h2, h3 { font-family: var(--grotesk); font-weight: 500; letter-spacing: 0; margin: 0; }
+
+.geant { font-size: 150px; line-height: .8; text-align: center; }
+@media (max-width: 1439px) { .geant { font-size: 140px; } }
+@media (max-width: 1199px) { .geant { font-size: 94px; } }
+@media (max-width: 809px)  { .geant { font-size: 54px; line-height: .9; padding: 0 12px; } }
+
+.grand { font-size: 140px; line-height: .8; text-align: center; color: var(--gris-fonce); }
+@media (max-width: 1199px) { .grand { font-size: 94px; } }
+@media (max-width: 809px)  { .grand { font-size: 54px; line-height: .9; } }
+
+/* Crochets d'angle autour d'un bloc de titre */
+.crochets { position: relative; padding: 34px 0 30px; margin: 0 var(--marge); }
+.crochets::before, .crochets::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(currentColor, currentColor) top left / 10px 1px,
+    linear-gradient(currentColor, currentColor) top left / 1px 10px,
+    linear-gradient(currentColor, currentColor) top right / 10px 1px,
+    linear-gradient(currentColor, currentColor) top right / 1px 10px;
+  background-repeat: no-repeat;
+  opacity: .7;
+}
+.crochets::after { transform: scaleY(-1); }
+
+/* --- Textes secondaires ------------------------------------------------- */
+.mono { font: 400 12px/1.3 var(--mono); letter-spacing: 0; }
+.chapeau { font-size: 22px; line-height: 1.2; letter-spacing: .05em; color: var(--encre-douce); }
+
+/* « Introducing Jev ........ Intelligence beyond chat » : 18 px, 100 %, +0,03 em */
+.pointilles {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  font: 500 18px/1 var(--grotesk);
+  letter-spacing: .03em;
+}
+.pointilles .points { flex: 0 1 190px; border-bottom: 2px dotted currentColor; }
+@media (max-width: 809px) { .pointilles { font-size: 15px; padding: 0 20px; white-space: nowrap; } .pointilles .points { flex-basis: 40px; } }
+
+/* Chaîne décorative verticale : JetBrains Mono 10 px */
+.vertical {
+  position: absolute;
+  left: calc(var(--marge) + 70px);
+  top: 520px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font: 10px var(--mono);
+  letter-spacing: 0;
+  color: #858585e6;
+  white-space: nowrap;
+  max-height: 560px;
+  overflow: hidden;
+}
+@media (max-width: 1199px) { .vertical { display: none; } }
+
+/* --- Liens d'action : 56 px, 90 %, soulignés ---------------------------- */
+.actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px 80px; margin-top: 70px; }
+.action {
+  font: 500 56px/.9 var(--grotesk);
+  letter-spacing: 0;
+  color: var(--encre);
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 10px;
+}
+.action:hover { text-decoration-thickness: 6px; }
+@media (max-width: 809px) { .action { font-size: 34px; } }
+
+/* --- Héros : nuages granuleux (dessinés en CSS) qui se fondent dans le blanc */
+.heros { position: relative; padding: 90px 0 130px; }
+.heros::before, .heros::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 520px;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent);
+}
+.heros::before {
+  background:
+    radial-gradient(ellipse 30% 75% at 4% 20%, #e551ba 0%, transparent 72%),
+    radial-gradient(ellipse 22% 50% at 22% 60%, #d45bb6cc 0%, transparent 72%),
+    radial-gradient(ellipse 30% 75% at 96% 18%, #e551ba 0%, transparent 72%),
+    radial-gradient(ellipse 20% 50% at 78% 50%, #9a6cf0 0%, transparent 72%),
+    radial-gradient(ellipse 18% 45% at 99% 64%, #f386a1 0%, transparent 72%),
+    linear-gradient(to bottom, #7aa8d6, #b3cde9);
+}
+/* Grain par-dessus (bruit SVG en ligne, aucune image externe) */
+.heros::after {
+  opacity: .5;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.heros > * { position: relative; }
+.heros .fenetre { margin: 0 auto 80px; width: min(364px, 90%); text-align: center; }
+.heros .pointilles { margin-bottom: 60px; }
+
+/* --- Fenêtres rétro (police terminal) ----------------------------------- */
+.fenetre {
+  background: var(--gris-fenetre);
+  border: 2px solid var(--encre);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, .4);
+  font: 400 20px/1.15 var(--terminal);
+  letter-spacing: .02em;
+  color: var(--encre);
+}
+.fenetre .barre {
+  background: var(--encre);
+  color: var(--gris-fenetre);
+  font: 400 18px/22px var(--terminal);
+  padding: 0 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fenetre .contenu { padding: 10px 12px; }
+.fenetre p { margin: 0 0 .5em; }
+.fenetre.blanche { background: var(--fond); }
+.etiquette {
+  display: inline-block;
+  background: var(--encre);
+  color: var(--gris-fenetre);
+  font: 400 20px/1.1 var(--terminal);
+  padding: 0 5px;
+}
+
+/* --- Sections ----------------------------------------------------------- */
+section { padding: 100px 0; }
+.rose { background: var(--rose); color: var(--gris-fonce); }
+.rose .action { color: var(--gris-fonce); }
+
+/* Trame de points (évoque le rendu tramé de la référence) */
+.trame {
+  background-color: var(--rose);
+  background-image: radial-gradient(rgba(30, 30, 30, .55) 1px, transparent 1.3px);
+  background-size: 6px 6px;
+  border: 1px solid rgba(30, 30, 30, .5);
+  margin: 56px var(--marge) 0;
+  padding: 56px clamp(16px, 5vw, 70px);
+  position: relative;
+}
+.trame .badge { position: absolute; top: -1px; left: -1px; }
+
+.exemples { display: grid; gap: 36px; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); }
+.ecrans { display: grid; grid-template-columns: 1.7fr 1fr; gap: 10px; align-items: end; }
+.ecran {
+  background: repeating-linear-gradient(45deg, var(--gris-filet) 0 2px, #ececec 2px 5px);
+  border: 1px solid var(--encre);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font: 16px/1.1 var(--terminal);
+  padding: 6px;
+}
+.ecran.paysage { aspect-ratio: 16 / 9; }
+.ecran.portrait { aspect-ratio: 9 / 16; }
+.ecran img, .ecran video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.exemple-legende { margin-top: 10px; }
+
+/* Colonnes : filet vertical, libellé mono 12 px, texte 22 px */
+.colonnes {
+  display: grid;
+  gap: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  margin: 70px var(--marge) 0;
+}
+.colonne { border-left: 1px solid currentColor; padding-left: 10px; }
+.colonne .mono { display: block; font-weight: 700; margin-bottom: 40px; }
+.colonne ul { list-style: none; margin: 0; padding: 0; }
+.colonne li { margin: 0 0 .7em; font-size: 22px; line-height: 1.2; letter-spacing: .02em; color: var(--encre-douce); }
+
+/* Tarifs : lignes façon tableau de la référence */
+.tarifs { max-width: 760px; margin: 70px auto 0; padding: 0 20px; }
+.ligne {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) 2fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 0 12px;
+  border-bottom: 2px solid #858585e6;
+}
+.ligne .prix { font: 400 26px var(--terminal); white-space: nowrap; }
+@media (max-width: 600px) {
+  .ligne { grid-template-columns: 1fr auto; }
+  .ligne p { grid-column: 1 / -1; grid-row: 2; }
+}
+.fin-tableau {
+  height: 40px;
+  margin-bottom: 10px;
+  background-image: radial-gradient(#858585 1px, transparent 1.2px);
+  background-size: 5px 5px;
+}
+
+.note { font: 400 13px/1.45 var(--mono); letter-spacing: 0; }
+.centre-texte { text-align: center; max-width: 640px; margin: 30px auto 0; padding: 0 20px; }
+
+/* --- Pied de page ------------------------------------------------------- */
+footer { padding: 60px var(--marge) 40px; }
+footer .fenetre { max-width: 430px; }
+footer nav { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 28px; font-size: 15px; }
+
+/* --- Pages juridiques --------------------------------------------------- */
+.juridique { max-width: 780px; margin: 0 auto; padding: 120px 20px 60px; }
+.juridique h1 { font-size: 94px; line-height: .8; margin-bottom: 24px; }
+@media (max-width: 809px) { .juridique h1 { font-size: 54px; } }
+.juridique h2 { font-size: 30px; line-height: .9; letter-spacing: .02em; margin: 2em 0 .7em; padding-top: 14px; border-top: 1px solid var(--gris-filet); }
+.juridique h3 { font-size: 20px; letter-spacing: .02em; margin: 1.5em 0 .4em; }
+.juridique p, .juridique li { font-size: 17px; line-height: 1.45; color: var(--encre-douce); }
+.juridique .fenetre { margin: 1.6em 0; }
+.juridique .fenetre p { color: var(--encre); font-size: 20px; line-height: 1.15; }
+.juridique .action { font-size: 40px; }
+
+/* Informations à compléter avant la mise en ligne : visibles exprès. */
+mark.todo { background: #ff2d55; color: #fff; padding: 0 .3em; font-family: var(--mono); font-size: .8em; letter-spacing: 0; }
