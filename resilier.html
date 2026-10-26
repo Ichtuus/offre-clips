@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action https://formsubmit.co">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Résilier votre contrat — Nicolas Diarra EI</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="icon" href="favicon.ico" sizes="32x32">
@@ -38,15 +40,18 @@
       <input type="hidden" name="_subject" value="Notification de résiliation">
       <input type="hidden" name="_template" value="table">
       <input type="hidden" name="_next" value="">
+      <!-- Piège à robots : champ invisible, un humain ne le remplit jamais (FormSubmit ignore alors l'envoi). -->
+      <input class="piege" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="_url" value="">
       <input type="hidden" name="_autoresponse" value="Accusé de réception : votre notification de résiliation a bien été reçue. Vous recevrez sous peu un e-mail confirmant la date de fin de votre contrat. — Nicolas Diarra EI">
 
       <div class="saisie">
         <label for="res-nom">Nom et prénom, ou nom de l'entreprise</label>
-        <input id="res-nom" name="nom" type="text" required>
+        <input id="res-nom" name="nom" type="text" required maxlength="120" autocomplete="name">
         <label for="res-email">Adresse e-mail</label>
-        <input id="res-email" name="email" type="email" required>
+        <input id="res-email" name="email" type="email" required maxlength="254" autocomplete="email">
         <label for="res-ref">Référence client (si vous en avez une)</label>
-        <input id="res-ref" name="reference" type="text">
+        <input id="res-ref" name="reference" type="text" maxlength="80">
         <label for="res-date">Date de résiliation souhaitée (vide : fin du mois en cours)</label>
         <input id="res-date" name="date_souhaitee" type="date">
         <button class="bouton-terminal" type="button" data-verifier>Vérifier ma demande</button>

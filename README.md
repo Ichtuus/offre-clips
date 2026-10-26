@@ -29,7 +29,17 @@ Tout ce qui manque est surligné en rouge sur le site : `grep -n "todo" *.html`
 
 Les trois formulaires (essai, résiliation, rétractation) sont dans les pages et envoyés par **FormSubmit** (gratuit, sans compte) vers devichtus.pro@gmail.com. Chaque envoi déclenche un accusé de réception automatique à l'expéditeur.
 
-**Activation, une seule fois, après la mise en ligne :** envoyer soi-même le formulaire d'essai depuis le site en ligne. FormSubmit envoie alors un e-mail d'activation à devichtus.pro@gmail.com : cliquer sur le lien. Avant cette activation, les envois ne sont pas transmis.
+**Activation, une fois par formulaire :** envoyer soi-même chaque formulaire depuis le site en ligne, puis cliquer sur le lien d'activation reçu sur devichtus.pro@gmail.com. Les envois faits avant l'activation sont conservés 30 jours par FormSubmit.
+
+**Sécurité et comportement :**
+- bouton grisé et « Envoi en cours… » dès le premier clic ; les clics suivants sont ignorés ;
+- message d'erreur si l'appareil est hors ligne ou si l'envoi n'aboutit pas en 20 s ; bouton remis en état au retour arrière ;
+- côté FormSubmit : reCAPTCHA (laissé actif, il est aussi nécessaire à l'accusé de réception automatique) et champ piège `_honey` contre les robots ;
+- longueur maximale sur chaque champ ;
+- politique de sécurité du contenu (CSP) dans chaque page : scripts, styles et polices du site uniquement, formulaires envoyables seulement vers formsubmit.co ;
+- le récapitulatif de résiliation insère les saisies en texte brut (`textContent`), jamais en HTML.
+
+Limite : l'envoi est un POST classique, pas de l'AJAX (sinon FormSubmit n'envoie pas d'accusé de réception). Si FormSubmit renvoie une erreur, elle s'affiche sur sa propre page.
 
 Après une résiliation, il faut encore envoyer soi-même au client un e-mail qui confirme la date de fin de son contrat (obligation légale).
 

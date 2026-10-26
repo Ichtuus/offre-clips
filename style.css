@@ -317,3 +317,18 @@ mark.todo { background: #ff2d55; color: #fff; padding: 0 .3em; font-family: var(
 .recap dt { font-size: 16px; color: var(--gris-fonce); margin-top: 8px; }
 .recap dd { margin: 0; font-size: 21px; }
 .juridique .formulaire { margin: 1.6em 0; }
+
+/* Envoi en cours : bouton grisé, curseur d'attente */
+.bouton-terminal:disabled,
+.bouton-terminal:disabled:hover {
+  background: #858585;
+  border-color: #858585;
+  color: var(--gris-fenetre);
+  cursor: wait;
+}
+.formulaire[aria-busy="true"] input { opacity: .6; }
+.statut { margin: 12px 0 0; font-size: 19px; min-height: 1.2em; }
+.statut.erreur { color: #b00020; }
+
+/* Piège à robots : hors de l'écran, invisible pour les humains */
+.formulaire .piege { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }

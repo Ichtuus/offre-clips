@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action https://formsubmit.co">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Tes vidéos longues en clips prêts à poster — Nicolas Diarra</title>
   <meta name="description" content="Clips verticaux sous-titrés, titrés, avec miniature, tirés de tes vidéos longues. Livrés sous 48 h ouvrées. Abonnement sans engagement.">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -112,13 +114,16 @@
       <input type="hidden" name="_subject" value="Essai : 3 clips gratuits">
       <input type="hidden" name="_template" value="table">
       <input type="hidden" name="_next" value="">
+      <!-- Piège à robots : champ invisible, un humain ne le remplit jamais (FormSubmit ignore alors l'envoi). -->
+      <input class="piege" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="_url" value="">
       <input type="hidden" name="_autoresponse" value="Bien reçu ! Je regarde ta vidéo et je t'envoie tes 3 clips sous 48 h ouvrées. — Nicolas">
       <label for="essai-video">Lien de ta vidéo (YouTube, Drive…)</label>
-      <input id="essai-video" name="video" type="url" required placeholder="https://">
+      <input id="essai-video" name="video" type="url" required placeholder="https://" maxlength="500" autocomplete="url">
       <label for="essai-chaine">Nom de ta chaîne</label>
-      <input id="essai-chaine" name="chaine" type="text" required>
+      <input id="essai-chaine" name="chaine" type="text" required maxlength="120" autocomplete="organization">
       <label for="essai-email">Ton e-mail</label>
-      <input id="essai-email" name="email" type="email" required>
+      <input id="essai-email" name="email" type="email" required maxlength="254" autocomplete="email">
       <button class="bouton-terminal" type="submit">Envoyer ma vidéo</button>
     </div>
   </form>
