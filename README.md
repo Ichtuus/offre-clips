@@ -18,9 +18,9 @@ Aperçu local : `python3 -m http.server 8765` puis http://localhost:8765
 
 Tout ce qui manque est surligné en rouge sur le site : `grep -n "todo" *.html`
 
-- [ ] `[TÉLÉPHONE]` : obligatoire (mentions légales, CGV)
-- [ ] **Médiateur de la consommation** : CGV, article 18. Obligatoire dès qu'on vend à des particuliers. Il faut adhérer à un médiateur agréé avant la mise en ligne (liste officielle : https://www.economie.gouv.fr/mediation-conso).
-- [ ] Assurance RC Pro : CGV, article 15. Indiquer l'assureur, ou supprimer la ligne si vous n'en avez pas.
+- [ ] **Téléphone** : retiré pendant la phase de test, alors qu'il est obligatoire (mentions légales : LCEN art. 1-1 ; CGV : art. L111-1 et R111-1 C. conso). À remettre avant d'ouvrir l'offre plus largement.
+- [ ] **Médiateur de la consommation** : retiré pendant la phase de test, alors qu'il est obligatoire dès qu'on vend à des particuliers (art. L612-1 et L616-1 C. conso, amende jusqu'à 3 000 €). Adhérer à un médiateur agréé (https://www.economie.gouv.fr/mediation-conso), puis rétablir la phrase de l'article 18 des CGV.
+- [ ] Assurance RC Pro (Orus, courtier) : CGV, article 15. Reporter le nom de l'assureur et la couverture géographique depuis l'attestation.
 - [ ] Les 3 exemples avant/après, uniquement avec l'**accord écrit** du créateur
 - [ ] Vérifier que les clips et transcriptions sont bien supprimés 90 jours après livraison (engagement de la politique de confidentialité). Aujourd'hui, `clipper clean` ne supprime que la source et l'audio.
 - [ ] Activité déclarée : code APE 62.01Z (programmation informatique). Ajouter le montage vidéo à l'activité déclarée (démarche gratuite sur formalites.entreprises.gouv.fr).
