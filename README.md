@@ -21,7 +21,7 @@ Site statique en HTML, CSS et JavaScript, sans dépendance ni étape de compilat
 ## Développement
 
 ```bash
-python3 -m http.server 8765    # puis http://localhost:8765
+python3 -m http.server 8000    # puis http://localhost:8000 (le port 8765 est pris par la revue de Clipper)
 ```
 
 ## Charte graphique
