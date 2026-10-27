@@ -1,7 +1,7 @@
 // Reçoit les formulaires du site : enregistre chaque demande dans la feuille,
 // prévient Nicolas par e-mail, puis envoie l'accusé de réception au visiteur.
 // La demande est enregistrée AVANT les e-mails : si un envoi échoue, rien n'est perdu.
-// Envoie aussi les e-mails de prospection depuis l'onglet « Prospects » (menu « Clips » de la feuille).
+// Envoie aussi les e-mails de prospection depuis l'onglet « Prospects » (menu « Clips » de la feuille), en texte brut.
 // Déploiement : voir README.md.
 
 // <charte> Généré par charte/synchroniser.mjs depuis charte/theme.json : ne pas modifier ici.
@@ -205,7 +205,7 @@ function accuseTexte(a) {
   return lignes.join('\n');
 }
 
-// --- Gabarit commun à tous les e-mails (accusés, prospection) -----------------------------
+// --- Gabarit commun des e-mails HTML (accusés de réception) ------------------------------
 // Les messageries ignorent feuilles de style et polices web : tableaux et styles en ligne,
 // couleurs et polices de repli tirées de CHARTE (généré depuis charte/theme.json).
 // Les morceaux de `corps` sont du HTML déjà sûr : tout texte venant d'une feuille passe par echapper().
@@ -272,7 +272,7 @@ function blocEncadre(html) {
     '<tr><td style="padding:14px 16px;font:500 16px/1.4 ' + CHARTE.polices.grotesk + ';color:' + c.encre + ';">' + html + '</td></tr></table>';
 }
 
-// Image cliquable (miniature) et bouton : `lien` et `image` doivent être passés par lienSur().
+// Image cliquable et bouton, pour de futurs e-mails (récapitulatif client…) : `lien` et `image` doivent être passés par lienSur().
 function blocImage(image, lien, texteAlt) {
   return '<a href="' + lien + '" style="display:block;margin:0 0 18px 0;text-decoration:none;">' +
     '<img src="' + image + '" alt="' + echapper(texteAlt) + '" width="520" style="display:block;width:100%;max-width:520px;height:auto;border:2px solid ' + CHARTE.couleurs.encre + ';"></a>';
@@ -319,35 +319,74 @@ function testerAccuse() {
 
 // --- Prospection : onglet « Prospects » et menu « Clips » ------------------------------
 // Ces fonctions ne sont appelables que depuis la feuille (menu) ou l'éditeur, avec le compte propriétaire :
-// le site (doPost) n'y a pas accès. Les textes de la feuille sont quand même échappés.
+// le site (doPost) n'y a pas accès.
+//
+// Premier contact en texte brut, comme un e-mail écrit à la main : pas de mise en page, pas de prix,
+// et deux lignes personnalisées obligatoires (sujet de la vidéo, passage précis). L'ancienne version
+// en HTML est conservée dans l'historique Git (étiquette `prospection-html`).
+// Les relances ne partent pas d'ici : le texte est préparé dans la feuille, puis envoyé à la main
+// en répondant au premier e-mail dans Gmail, pour rester dans le même fil.
 
 const ONGLET_PROSPECTS = 'Prospects';
-const COLONNES = ['Envoyer', 'E-mail', 'Prénom', 'Chaîne', 'Lien de la page', 'Phrase perso', 'Envoyé le', 'Ne plus contacter', 'Résultat'];
-const COL = { envoyer: 0, email: 1, prenom: 2, chaine: 3, lien: 4, phrase: 5, envoye: 6, stop: 7, resultat: 8 };
+const COLONNES = ['Envoyer', 'E-mail', 'Prénom', 'Chaîne', 'Lien de la page', 'Phrase perso', 'Envoyé le', 'Ne plus contacter', 'Résultat',
+  'Sujet', 'Passage', 'Invité', 'Nb clips', 'Relance prévue le', 'Relancé', 'Texte de relance'];
+const COL = { envoyer: 0, email: 1, prenom: 2, chaine: 3, lien: 4, phrase: 5, envoye: 6, stop: 7, resultat: 8,
+  sujet: 9, passage: 10, invite: 11, nb: 12, relanceLe: 13, relance: 14, texteRelance: 15 };
+const NOTES_COLONNES = {
+  sujet: 'Sujet de la vidéo, tel qu\'il suit « ta vidéo sur… ». Ex. : ton dernier freestyle',
+  passage: 'Passage précis, tel qu\'il suit « le passage où… ». Ex. : tu expliques pourquoi le refrain a été réécrit',
+  invite: 'Facultatif : nom de l\'invité. L\'objet devient « … de ta vidéo avec [invité] ».',
+  nb: 'Nombre de clips sur la page. Vide : « quelques clips ».',
+  phrase: 'Facultatif : une phrase de plus, ajoutée après le lien.',
+};
+const JOURS_AVANT_RELANCE = 5;
 const MARGE_QUOTA = 20; // e-mails gardés pour les accusés de réception du jour
+const EXPEDITEUR = SIGNATURE.replace(/\s+EI$/, ''); // « Nicolas Diarra » : un nom de personne, pas d'entreprise
 
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('Clips')
     .addItem('Envoyer les prospects cochés', 'envoyerProspects')
     .addItem('Aperçu : m\'envoyer le premier prospect coché', 'apercuProspect')
+    .addItem('Préparer les relances du jour', 'preparerRelances')
     .addSeparator()
     .addItem('Créer ou réparer l\'onglet Prospects', 'preparerOngletProspects')
     .addToUi();
 }
 
+// Ajoute les colonnes manquantes à droite sans toucher aux données existantes.
 function preparerOngletProspects() {
   const classeur = SpreadsheetApp.getActiveSpreadsheet();
   const feuille = classeur.getSheetByName(ONGLET_PROSPECTS) || classeur.insertSheet(ONGLET_PROSPECTS);
+  if (feuille.getMaxColumns() < COLONNES.length) feuille.insertColumnsAfter(feuille.getMaxColumns(), COLONNES.length - feuille.getMaxColumns());
   feuille.getRange(1, 1, 1, COLONNES.length).setValues([COLONNES]).setFontWeight('bold');
+  Object.keys(NOTES_COLONNES).forEach((cle) => feuille.getRange(1, COL[cle] + 1).setNote(NOTES_COLONNES[cle]));
   feuille.setFrozenRows(1);
   const lignes = Math.max(feuille.getMaxRows() - 1, 200);
   if (feuille.getMaxRows() < lignes + 1) feuille.insertRowsAfter(feuille.getMaxRows(), lignes + 1 - feuille.getMaxRows());
-  feuille.getRange(2, COL.envoyer + 1, lignes, 1).insertCheckboxes();
-  feuille.getRange(2, COL.stop + 1, lignes, 1).insertCheckboxes();
+  [COL.envoyer, COL.stop, COL.relance].forEach((c) => feuille.getRange(2, c + 1, lignes, 1).insertCheckboxes());
   feuille.getRange(2, COL.envoye + 1, lignes, 1).setNumberFormat('dd/mm/yyyy hh:mm');
-  [70, 220, 110, 160, 280, 360, 130, 120, 260].forEach((largeur, i) => feuille.setColumnWidth(i + 1, largeur));
-  feuille.getRange(2, COL.phrase + 1, lignes, 1).setWrap(true);
-  SpreadsheetApp.getUi().alert('Onglet « Prospects » prêt. Une ligne par créateur : coche « Envoyer », puis menu Clips → Envoyer les prospects cochés.');
+  feuille.getRange(2, COL.relanceLe + 1, lignes, 1).setNumberFormat('dd/mm/yyyy');
+  [70, 220, 110, 160, 280, 260, 130, 120, 260, 220, 320, 140, 80, 130, 80, 420].forEach((largeur, i) => feuille.setColumnWidth(i + 1, largeur));
+  [COL.phrase, COL.passage, COL.texteRelance].forEach((c) => feuille.getRange(2, c + 1, lignes, 1).setWrap(true));
+
+  // Date de relance pour les prospects déjà contactés qui n'en ont pas encore.
+  lireProspects().lignes.forEach((l) => {
+    if (l.v[COL.envoye] instanceof Date && !l.v[COL.relanceLe]) feuille.getRange(l.numero, COL.relanceLe + 1).setValue(dateRelance(l.v[COL.envoye]));
+  });
+
+  // Ligne surlignée quand la relance est due (date atteinte, pas encore relancé, pas de refus).
+  const lettre = (c) => String.fromCharCode(65 + c);
+  const regle = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=AND($' + lettre(COL.relanceLe) + '2<>"", $' + lettre(COL.relanceLe) + '2<=TODAY(), $' + lettre(COL.relance) + '2<>TRUE, $' + lettre(COL.stop) + '2<>TRUE)')
+    .setBackground('#fde2ea')
+    .setRanges([feuille.getRange(2, 1, lignes, COLONNES.length)])
+    .build();
+  feuille.setConditionalFormatRules(feuille.getConditionalFormatRules()
+    .filter((r) => !r.getBooleanCondition() || r.getBooleanCondition().getCriteriaType() !== SpreadsheetApp.BooleanCriteria.CUSTOM_FORMULA)
+    .concat(regle));
+
+  SpreadsheetApp.getUi().alert('Onglet « Prospects » prêt. Une ligne par créateur : remplis au moins E-mail, Lien de la page, Sujet et Passage, ' +
+    'coche « Envoyer », puis menu Clips → Envoyer les prospects cochés. Les lignes en rose sont à relancer.');
 }
 
 function lireProspects() {
@@ -357,50 +396,74 @@ function lireProspects() {
   return { feuille: feuille, lignes: valeurs.map((v, i) => ({ numero: i + 2, v: v })) };
 }
 
+function dateRelance(envoi) {
+  const d = new Date(envoi);
+  d.setDate(d.getDate() + JOURS_AVANT_RELANCE);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function texteCellule(v, cle, max) {
+  return String(v[COL[cle]] == null ? '' : v[COL[cle]]).trim().replace(/\s+/g, ' ').slice(0, max || 200);
+}
+
+// « Tu expliques… » → « tu expliques… », pour s'insérer après « le passage où ».
+function passageDe(v) {
+  const p = texteCellule(v, 'passage', 300).replace(/[.!]+$/, '');
+  return /^[A-ZÀ-Ý][a-zà-ÿ]/.test(p) ? p.charAt(0).toLowerCase() + p.slice(1) : p;
+}
+
 // Construit l'e-mail d'une ligne. Lève une erreur lisible si la ligne est incomplète.
 function messageProspect(v) {
   const email = String(v[COL.email]).trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('adresse e-mail invalide');
   const page = String(v[COL.lien]).trim().replace(/index\.html$/, '').replace(/\/?$/, '/');
-  const lien = lienSur(page);
-  if (!lien) throw new Error('lien de la page manquant ou invalide (https://… attendu)');
-  const image = lienSur(page + 'apercu.jpg'); // écrit par `clipper export` dans chaque dossier livré
-  const prenom = String(v[COL.prenom]).trim().slice(0, 60);
-  const chaine = String(v[COL.chaine]).trim().slice(0, 60);
-  const phrase = String(v[COL.phrase]).trim().slice(0, LONGUEUR_MAX);
-  const prix = CHARTE.offre.formules.length ? CHARTE.offre.formules[0].prix : '';
+  if (!lienSur(page)) throw new Error('lien de la page manquant ou invalide (https://… attendu)');
+  const sujet = texteCellule(v, 'sujet', 120);
+  const passage = passageDe(v);
+  if (!sujet || !passage) throw new Error('remplis « Sujet » et « Passage » : c\'est ce qui montre que tu as regardé la vidéo');
+  const prenom = texteCellule(v, 'prenom', 60);
+  const invite = texteCellule(v, 'invite', 80);
+  const nb = parseInt(v[COL.nb], 10);
+  const phrase = String(v[COL.phrase] == null ? '' : v[COL.phrase]).trim().slice(0, LONGUEUR_MAX);
 
-  const objet = prenom ? prenom + ', j\'ai découpé ta vidéo en clips' : 'J\'ai découpé ta vidéo en clips prêts à poster';
-  const intro = 'J\'ai pris une de tes vidéos et j\'en ai tiré des clips courts, prêts à poster : coupés au bon endroit, ' +
-    'sous-titrés, avec un titre et une miniature.';
-  const offre = 'C\'est offert, sans engagement : tu peux les poster tels quels.' +
-    (prix ? ' Si tu veux la même chose pour chaque vidéo, c\'est à partir de ' + prix + ', résiliable à tout moment.' : '');
-  const question = 'Une question, une retouche ? Réponds simplement à cet e-mail.';
-  const rappel = 'Tu reçois ce message parce que j\'ai préparé ces clips à partir d\'une de tes vidéos publiques. ' +
-    'Tu ne veux plus de message de ma part ? Réponds STOP, c\'est noté.';
-  const salut = '— ' + CHARTE.marque.prenom;
+  const clips = nb > 1 ? nb + ' clips' : nb === 1 ? 'un clip' : 'quelques clips';
+  const objet = (nb > 1 ? nb + ' clips' : nb === 1 ? 'Un clip' : 'Des clips') + ' de ta vidéo ' + (invite ? 'avec ' + invite : 'sur ' + sujet);
+  const texte = [
+    prenom ? 'Salut ' + prenom + ',' : 'Salut,',
+    '',
+    'J\'ai regardé ta vidéo sur ' + sujet + ', et le passage où ' + passage + ' m\'a semblé parfait en format court. ' +
+      'J\'en ai sorti ' + clips + ' sous-titré' + (nb === 1 ? '' : 's') + ', prêt' + (nb === 1 ? '' : 's') + ' à poster en Short, TikTok ou Reel :',
+    '',
+    page,
+    phrase ? '\n' + phrase : '',
+    '',
+    'C\'est cadeau, tu les utilises comme tu veux. Si ça te plaît, je peux en faire autant sur chaque nouvelle vidéo, ' +
+      'je t\'explique comment je bosse si ça t\'intéresse.',
+    '',
+    CHARTE.marque.prenom,
+    '',
+    // Obligatoire en prospection (art. L34-5 CPCE) : un moyen simple de ne plus être contacté.
+    'PS : si ce n\'est pas pour toi, dis-le-moi et je ne t\'écrirai plus.',
+  ].join('\n').replace(/\n{3,}/g, '\n\n');
+  return { email: email, objet: objet, texte: texte };
+}
 
-  const html = gabaritEmail({
-    objet: objet,
-    apercu: 'Tes clips sont prêts : regarde-les et télécharge-les en un clic.',
-    etiquette: chaine ? echapper(chaine) : 'Clips offerts',
-    fenetre: 'clips_prets.txt',
-    statut: 'Prêts à poster ✓',
-    titre: prenom ? 'Salut ' + echapper(prenom) + ',<br>tes clips<br>sont prêts.' : 'Tes clips<br>sont prêts.',
-    corps: [
-      blocParagraphe(intro + ' ' + echapper(CHARTE.offre.usage)),
-      phrase ? blocParagraphe(echapper(phrase).replace(/\n/g, '<br>')) : '',
-      image ? blocImage(image, lien, 'Aperçu de tes clips') : '',
-      blocBouton('▶ Voir tes clips', lien),
-      blocEncadre(offre),
-      blocParagraphe(question),
-    ],
-    salut: salut,
-    rappel: rappel,
-  });
-  const texte = [prenom ? 'Salut ' + prenom + ',' : 'Salut,', '', intro + ' ' + CHARTE.offre.usage, phrase ? '\n' + phrase : '', '',
-    'Voir tes clips : ' + page, '', offre, '', question, '', salut, '', '—', SIGNATURE + ' · ' + SITE, rappel].join('\n');
-  return { email: email, objet: objet, html: html, texte: texte };
+function texteRelance(v) {
+  const prenom = texteCellule(v, 'prenom', 60);
+  const sujet = texteCellule(v, 'sujet', 120);
+  const passage = passageDe(v);
+  if (!sujet || !passage) throw new Error('remplis « Sujet » et « Passage » pour préparer la relance');
+  return [
+    prenom ? 'Salut ' + prenom + ',' : 'Salut,',
+    '',
+    'Je reviens vers toi pour les clips de ta vidéo sur ' + sujet + '. Le passage où ' + passage +
+      ' est celui que je trouve le plus fort en format court.',
+    '',
+    'Si l\'un des clips te plaît, dis-moi lequel et je t\'envoie le fichier direct.',
+    '',
+    CHARTE.marque.prenom,
+  ].join('\n');
 }
 
 function envoyerProspects() {
@@ -425,8 +488,10 @@ function envoyerProspects() {
     if (dejaContactes.has(cle)) { resultat.setValue('Ignoré : déjà contacté'); ignores++; return; }
     try {
       const m = messageProspect(l.v);
-      MailApp.sendEmail({ to: m.email, replyTo: DESTINATAIRE, name: CHARTE.marque.signature, subject: m.objet, body: m.texte, htmlBody: m.html });
-      feuille.getRange(l.numero, COL.envoye + 1).setValue(new Date());
+      MailApp.sendEmail({ to: m.email, name: EXPEDITEUR, subject: m.objet, body: m.texte });
+      const maintenant = new Date();
+      feuille.getRange(l.numero, COL.envoye + 1).setValue(maintenant);
+      feuille.getRange(l.numero, COL.relanceLe + 1).setValue(dateRelance(maintenant));
       feuille.getRange(l.numero, COL.envoyer + 1).setValue(false);
       resultat.setValue('Envoyé');
       dejaContactes.add(cle);
@@ -446,11 +511,35 @@ function apercuProspect() {
   if (!ligne) return ui.alert('Coche une ligne dans « Envoyer » pour l\'aperçu.');
   try {
     const m = messageProspect(ligne.v);
-    MailApp.sendEmail({ to: DESTINATAIRE, name: CHARTE.marque.signature, subject: '[Aperçu] ' + m.objet, body: m.texte, htmlBody: m.html });
+    MailApp.sendEmail({ to: DESTINATAIRE, name: EXPEDITEUR, subject: '[Aperçu] ' + m.objet, body: m.texte });
     ui.alert('Aperçu envoyé sur ' + DESTINATAIRE + '.');
   } catch (erreur) {
     ui.alert('Ligne ' + ligne.numero + ' : ' + erreur.message);
   }
+}
+
+// Écrit le texte de relance des prospects dont la date est atteinte. Rien n'est envoyé :
+// copier le texte, répondre au premier e-mail dans Gmail, puis cocher « Relancé ».
+function preparerRelances() {
+  const ui = SpreadsheetApp.getUi();
+  const { feuille, lignes } = lireProspects();
+  const aujourdhui = new Date();
+  let prets = 0, incomplets = 0;
+  lignes.forEach((l) => {
+    const prevue = l.v[COL.relanceLe];
+    if (!(prevue instanceof Date) || prevue > aujourdhui || l.v[COL.relance] === true || l.v[COL.stop] === true) return;
+    const cellule = feuille.getRange(l.numero, COL.texteRelance + 1);
+    try {
+      cellule.setValue(texteRelance(l.v));
+      prets++;
+    } catch (erreur) {
+      cellule.setValue('À compléter : ' + erreur.message);
+      incomplets++;
+    }
+  });
+  ui.alert(prets ? prets + ' relance(s) prête(s) dans la colonne « Texte de relance ». Pour chacune : dans Gmail, ouvre l\'e-mail envoyé, ' +
+    'clique sur Répondre, colle le texte, envoie, puis coche « Relancé ».' + (incomplets ? '\n' + incomplets + ' ligne(s) à compléter (Sujet, Passage).' : '')
+    : incomplets ? incomplets + ' ligne(s) à relancer, mais il manque Sujet ou Passage.' : 'Aucune relance due aujourd\'hui.');
 }
 
 // Compteur glissant en cache : faux si la limite est atteinte.

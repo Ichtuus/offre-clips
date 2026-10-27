@@ -58,7 +58,7 @@ Chaque demande porte une référence unique, ce qui évite les doublons lors des
 
 Après une modification : Déployer → Gérer les déploiements → nouvelle version. L'URL ne change pas.
 
-La feuille dispose aussi d'un menu « Clips » pour l'envoi des e-mails de prospection depuis l'onglet « Prospects ». Ces fonctions ne sont accessibles qu'au propriétaire de la feuille.
+La feuille dispose aussi d'un menu « Clips » : envoi des premiers e-mails de contact en texte brut depuis l'onglet « Prospects », et préparation des relances. Ces fonctions ne sont accessibles qu'au propriétaire de la feuille.
 
 ### Sécurité
 
