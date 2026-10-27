@@ -49,6 +49,8 @@
     }
   },
   "offre": {
+    "usage": "À poster en Shorts, TikTok et Reels : chaque clip fait découvrir ta chaîne à de nouvelles personnes et les renvoie vers ta vidéo longue.",
+    "usage_chaine_extraits": "Tu fais des podcasts, des interviews ou des lives ? Je peux aussi te livrer des extraits horizontaux de 2 à 5 minutes, pour alimenter une chaîne d'extraits.",
     "lien": "https://ichtuus.github.io/offre-clips/#prix",
     "formules": [
       {"nom": "Hebdo", "detail": "4 vidéos longues par mois, environ 30 à 40 clips.", "prix": "290 €/mois"},

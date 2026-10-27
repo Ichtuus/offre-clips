@@ -97,10 +97,12 @@ if (existsSync(join(CLIPPER, 'clipper', 'presentation'))) {
   console.log(`Clipper introuvable (${CLIPPER}) : ignoré. Indiquer son dossier avec --clipper.`);
 }
 
-// Les prix du site sont écrits à la main dans index.html : on vérifie qu'ils suivent la charte.
+// Les prix et les phrases d'usage du site sont écrits à la main dans index.html : on vérifie qu'ils suivent la charte.
 const accueil = readFileSync(join(SITE, 'index.html'), 'utf8');
 const prixAbsents = theme.offre.formules.filter((f) => !accueil.includes(f.prix)).map((f) => f.prix);
 if (prixAbsents.length) ecarts.push(`index.html : prix absents (${prixAbsents.join(', ')}) — à corriger à la main`);
+const textesAbsents = ['usage', 'usage_chaine_extraits'].filter((cle) => theme.offre[cle] && !accueil.includes(theme.offre[cle]));
+if (textesAbsents.length) ecarts.push(`index.html : texte de la charte absent (offre.${textesAbsents.join(', offre.')}) — à recopier à la main`);
 
 if (ecarts.length) {
   console.error((verifier ? 'Pas à jour avec la charte :\n  ' : 'À reprendre :\n  ') + ecarts.join('\n  '));

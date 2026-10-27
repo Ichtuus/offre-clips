@@ -34,6 +34,8 @@ const CHARTE = {
     "terminal": "'VT323',Menlo,Consolas,'Courier New',monospace"
   },
   "offre": {
+    "usage": "À poster en Shorts, TikTok et Reels : chaque clip fait découvrir ta chaîne à de nouvelles personnes et les renvoie vers ta vidéo longue.",
+    "usage_chaine_extraits": "Tu fais des podcasts, des interviews ou des lives ? Je peux aussi te livrer des extraits horizontaux de 2 à 5 minutes, pour alimenter une chaîne d'extraits.",
     "lien": "https://ichtuus.github.io/offre-clips/#prix",
     "formules": [
       {
@@ -386,7 +388,7 @@ function messageProspect(v) {
     statut: 'Prêts à poster ✓',
     titre: prenom ? 'Salut ' + echapper(prenom) + ',<br>tes clips<br>sont prêts.' : 'Tes clips<br>sont prêts.',
     corps: [
-      blocParagraphe(intro),
+      blocParagraphe(intro + ' ' + echapper(CHARTE.offre.usage)),
       phrase ? blocParagraphe(echapper(phrase).replace(/\n/g, '<br>')) : '',
       image ? blocImage(image, lien, 'Aperçu de tes clips') : '',
       blocBouton('▶ Voir tes clips', lien),
@@ -396,7 +398,7 @@ function messageProspect(v) {
     salut: salut,
     rappel: rappel,
   });
-  const texte = [prenom ? 'Salut ' + prenom + ',' : 'Salut,', '', intro, phrase ? '\n' + phrase : '', '',
+  const texte = [prenom ? 'Salut ' + prenom + ',' : 'Salut,', '', intro + ' ' + CHARTE.offre.usage, phrase ? '\n' + phrase : '', '',
     'Voir tes clips : ' + page, '', offre, '', question, '', salut, '', '—', SIGNATURE + ' · ' + SITE, rappel].join('\n');
   return { email: email, objet: objet, html: html, texte: texte };
 }
