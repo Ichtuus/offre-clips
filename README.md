@@ -56,7 +56,7 @@ Chaque demande porte une référence unique, ce qui évite les doublons lors des
 2. Déployer → Nouveau déploiement → Application Web, exécutée en tant que propriétaire, accessible à tout le monde.
 3. Reporter l'URL `/exec` dans l'attribut `action` des formulaires de `index.html`, `resilier.html` et `retractation.html`.
 
-Après une modification : Déployer → Gérer les déploiements → nouvelle version. L'URL ne change pas.
+Après une modification de `Code.gs` : `./apps-script/deployer.sh` envoie le script et en fait une nouvelle version du déploiement existant (l'URL ne change pas). Il utilise [clasp](https://github.com/google/clasp) : une fois, activer « API Google Apps Script » sur script.google.com/home/usersettings, `npm install -g @google/clasp`, `clasp login` avec le compte propriétaire de la feuille, et `.clasp.json` à la racine (ID du script, hors git). À la main sinon : Déployer → Gérer les déploiements → nouvelle version.
 
 La feuille dispose aussi d'un menu « Clips » : envoi des premiers e-mails de contact en texte brut depuis l'onglet « Prospects », et préparation des relances. Colonnes de suivi : « Visites », « Dernière visite », « Première visite » (remplies par le compteur) et « A répondu » (case à cocher quand le prospect répond : plus de relance prévue). Après une mise à jour du script : Clips → Créer ou réparer l'onglet Prospects, pour ajouter les nouvelles colonnes. Ces fonctions ne sont accessibles qu'au propriétaire de la feuille.
 
