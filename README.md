@@ -60,6 +60,8 @@ Après une modification : Déployer → Gérer les déploiements → nouvelle ve
 
 La feuille dispose aussi d'un menu « Clips » : envoi des premiers e-mails de contact en texte brut depuis l'onglet « Prospects », et préparation des relances. Ces fonctions ne sont accessibles qu'au propriétaire de la feuille.
 
+Le même déploiement compte les visites des pages de livraison envoyées aux prospects (`doGet`, colonnes « Visites » et « Dernière visite » de l'onglet « Prospects ») : Clipper pose une image vide qui appelle l'URL de `charte/theme.json` → `suivi.compteur`, avec le nom du site Netlify. Si l'URL du déploiement change, la mettre à jour là, puis `node charte/synchroniser.mjs`.
+
 ### Sécurité
 
 - Politique de sécurité du contenu (CSP) sur chaque page : seules les ressources du site sont chargées, et les connexions sont limitées au script Google et à FormSubmit.

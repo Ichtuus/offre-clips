@@ -57,5 +57,9 @@
       {"nom": "Intensif", "detail": "8 vidéos longues par mois, environ 60 à 80 clips.", "prix": "490 €/mois"}
     ],
     "mentions": "Résiliable à tout moment. TVA non applicable, art. 293 B du CGI."
+  },
+  "suivi": {
+    "_lisez_moi": "Compteur de visites des pages de livraison des prospects (Clipper) : l'URL du script Apps Script déployé (doGet de apps-script/Code.gs), la même que celle des formulaires.",
+    "compteur": "https://script.google.com/macros/s/AKfycbx_3Bza--3qeglQnAwqfAJykwMpxNwVE5ojVOMFkwlNm9lgNB2DnLyvJPpAOR9UVw66/exec"
   }
 }

@@ -1,7 +1,8 @@
 // Reçoit les formulaires du site : enregistre chaque demande dans la feuille,
 // prévient Nicolas par e-mail, puis envoie l'accusé de réception au visiteur.
 // La demande est enregistrée AVANT les e-mails : si un envoi échoue, rien n'est perdu.
-// Envoie aussi les e-mails de prospection depuis l'onglet « Prospects » (menu « Clips » de la feuille), en texte brut.
+// Envoie aussi les e-mails de prospection depuis l'onglet « Prospects » (menu « Clips » de la feuille), en texte brut,
+// et compte les visites des pages de livraison envoyées aux prospects (doGet).
 // Déploiement : voir README.md.
 
 // <charte> Généré par charte/synchroniser.mjs depuis charte/theme.json : ne pas modifier ici.
@@ -329,16 +330,19 @@ function testerAccuse() {
 
 const ONGLET_PROSPECTS = 'Prospects';
 const COLONNES = ['Envoyer', 'E-mail', 'Prénom', 'Chaîne', 'Lien de la page', 'Phrase perso', 'Envoyé le', 'Ne plus contacter', 'Résultat',
-  'Sujet', 'Passage', 'Invité', 'Nb clips', 'Relance prévue le', 'Relancé', 'Texte de relance'];
+  'Sujet', 'Passage', 'Invité', 'Nb clips', 'Relance prévue le', 'Relancé', 'Texte de relance', 'Visites', 'Dernière visite'];
 const COL = { envoyer: 0, email: 1, prenom: 2, chaine: 3, lien: 4, phrase: 5, envoye: 6, stop: 7, resultat: 8,
-  sujet: 9, passage: 10, invite: 11, nb: 12, relanceLe: 13, relance: 14, texteRelance: 15 };
+  sujet: 9, passage: 10, invite: 11, nb: 12, relanceLe: 13, relance: 14, texteRelance: 15, visites: 16, derniereVisite: 17 };
 const NOTES_COLONNES = {
   sujet: 'Sujet de la vidéo, tel qu\'il suit « ta vidéo sur… ». Ex. : ton dernier freestyle',
   passage: 'Passage précis, tel qu\'il suit « le passage où… ». Ex. : tu expliques pourquoi le refrain a été réécrit',
   invite: 'Facultatif : nom de l\'invité. L\'objet devient « … de ta vidéo avec [invité] ».',
   nb: 'Nombre de clips sur la page. Vide : « quelques clips ».',
   phrase: 'Facultatif : une phrase de plus, ajoutée après le lien.',
+  visites: 'Ouvertures de la page depuis l\'envoi de l\'e-mail, comptées automatiquement. Il faut que le site Netlify porte ' +
+    'le nom proposé par Clipper à l\'export. Tes propres visites après l\'envoi comptent aussi.',
 };
+const MAX_VISITES_PAR_HEURE = 30; // par page : un robot qui recharge en boucle ne remplit pas la feuille
 const JOURS_AVANT_RELANCE = 5;
 const MARGE_QUOTA = 20; // e-mails gardés pour les accusés de réception du jour
 const EXPEDITEUR = SIGNATURE.replace(/\s+EI$/, ''); // « Nicolas Diarra » : un nom de personne, pas d'entreprise
@@ -366,7 +370,8 @@ function preparerOngletProspects() {
   [COL.envoyer, COL.stop, COL.relance].forEach((c) => feuille.getRange(2, c + 1, lignes, 1).insertCheckboxes());
   feuille.getRange(2, COL.envoye + 1, lignes, 1).setNumberFormat('dd/mm/yyyy hh:mm');
   feuille.getRange(2, COL.relanceLe + 1, lignes, 1).setNumberFormat('dd/mm/yyyy');
-  [70, 220, 110, 160, 280, 260, 130, 120, 260, 220, 320, 140, 80, 130, 80, 420].forEach((largeur, i) => feuille.setColumnWidth(i + 1, largeur));
+  feuille.getRange(2, COL.derniereVisite + 1, lignes, 1).setNumberFormat('dd/mm/yyyy hh:mm');
+  [70, 220, 110, 160, 280, 260, 130, 120, 260, 220, 320, 140, 80, 130, 80, 420, 70, 130].forEach((largeur, i) => feuille.setColumnWidth(i + 1, largeur));
   [COL.phrase, COL.passage, COL.texteRelance].forEach((c) => feuille.getRange(2, c + 1, lignes, 1).setWrap(true));
 
   // Date de relance pour les prospects déjà contactés qui n'en ont pas encore.
@@ -438,8 +443,10 @@ function messageProspect(v) {
     page,
     phrase ? '\n' + phrase : '',
     '',
-    'C\'est cadeau, tu les utilises comme tu veux. Si ça te plaît, je peux en faire autant sur chaque nouvelle vidéo, ' +
-      'je t\'explique comment je bosse si ça t\'intéresse.',
+    'C\'est cadeau : tu les postes ou pas, comme tu veux.',
+    '',
+    // Une seule question, à laquelle on répond par oui ou non : c'est ce qui fait répondre.
+    'Tu veux que je fasse pareil sur ta prochaine vidéo ?',
     '',
     CHARTE.marque.prenom,
     '',
@@ -457,10 +464,10 @@ function texteRelance(v) {
   return [
     prenom ? 'Salut ' + prenom + ',' : 'Salut,',
     '',
-    'Je reviens vers toi pour les clips de ta vidéo sur ' + sujet + '. Le passage où ' + passage +
-      ' est celui que je trouve le plus fort en format court.',
+    'Petite relance pour les clips de ta vidéo sur ' + sujet + '. Le passage où ' + passage +
+      ' est celui que je posterais en premier.',
     '',
-    'Si l\'un des clips te plaît, dis-moi lequel et je t\'envoie le fichier direct.',
+    'Tu as eu le temps d\'y jeter un œil ? Même un « pas pour moi » me va très bien.',
     '',
     CHARTE.marque.prenom,
   ].join('\n');
@@ -540,6 +547,48 @@ function preparerRelances() {
   ui.alert(prets ? prets + ' relance(s) prête(s) dans la colonne « Texte de relance ». Pour chacune : dans Gmail, ouvre l\'e-mail envoyé, ' +
     'clique sur Répondre, colle le texte, envoie, puis coche « Relancé ».' + (incomplets ? '\n' + incomplets + ' ligne(s) à compléter (Sujet, Passage).' : '')
     : incomplets ? incomplets + ' ligne(s) à relancer, mais il manque Sujet ou Passage.' : 'Aucune relance due aujourd\'hui.');
+}
+
+// --- Compteur de visites des pages de livraison ----------------------------------------
+// Clipper pose en bas de chaque page de prospection une image vide qui appelle ce script avec
+// page=<nom du site Netlify>. La ligne de l'onglet « Prospects » dont le lien porte ce nom gagne une visite,
+// seulement après l'envoi de l'e-mail (tes vérifications d'avant ne comptent pas). Aucun cookie, aucune
+// donnée sur le visiteur : seulement le nombre d'ouvertures et la date de la dernière.
+
+function doGet(e) {
+  try {
+    const page = String((e && e.parameter && e.parameter.page) || '').trim().toLowerCase();
+    if (/^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/.test(page) && sousLaLimite('visite:' + page, MAX_VISITES_PAR_HEURE, 3600)) {
+      compterVisite(page);
+    }
+  } catch (erreur) {
+    console.error('Visite non comptée', erreur);
+  }
+  return ContentService.createTextOutput('');
+}
+
+function compterVisite(page) {
+  const feuille = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ONGLET_PROSPECTS);
+  if (!feuille || feuille.getLastRow() < 2) return;
+  const verrou = LockService.getScriptLock();
+  verrou.waitLock(10000);
+  try {
+    const maintenant = new Date();
+    lireProspects().lignes.forEach((l) => {
+      const envoi = l.v[COL.envoye];
+      if (nomDuSite(l.v[COL.lien]) !== page || !(envoi instanceof Date) || envoi > maintenant) return;
+      feuille.getRange(l.numero, COL.visites + 1).setValue((Number(l.v[COL.visites]) || 0) + 1);
+      feuille.getRange(l.numero, COL.derniereVisite + 1).setValue(maintenant);
+    });
+  } finally {
+    verrou.releaseLock();
+  }
+}
+
+// « https://karim-rap-7k3q.netlify.app/ » → « karim-rap-7k3q »
+function nomDuSite(lien) {
+  const m = String(lien || '').trim().toLowerCase().match(/^https?:\/\/([a-z0-9-]+)\./);
+  return m ? m[1] : '';
 }
 
 // Compteur glissant en cache : faux si la limite est atteinte.
