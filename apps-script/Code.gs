@@ -419,9 +419,15 @@ function texteCellule(v, cle, max) {
 }
 
 // « Tu expliques… » → « tu expliques… », pour s'insérer après « le passage où ».
+// Minuscule au milieu de la phrase (« Tu expliques » → « tu expliques »), mais jamais sur un nom propre
+// (« Marc explique » reste tel quel) : seulement pour les mots qui ouvrent couramment une phrase.
+const MINUSCULE_EN_TETE = ['tu', 'ton', 'ta', 'tes', 'il', 'elle', 'ils', 'elles', 'on', 'vous', 'nous', 'le', 'la', 'les', 'l',
+  'un', 'une', 'des', 'ce', 'cette', 'ces', 'son', 'sa', 'ses', 'leur', 'leurs', 'votre', 'vos', 'en', 'pour', 'c', 'd', 'j', 'qu'];
+
 function passageDe(v) {
   const p = texteCellule(v, 'passage', 300).replace(/[.!]+$/, '');
-  return /^[A-ZÀ-Ý][a-zà-ÿ]/.test(p) ? p.charAt(0).toLowerCase() + p.slice(1) : p;
+  const premier = p.split(/[\s'’]/)[0].toLowerCase();
+  return MINUSCULE_EN_TETE.indexOf(premier) >= 0 ? p.charAt(0).toLowerCase() + p.slice(1) : p;
 }
 
 // Construit l'e-mail d'une ligne. Lève une erreur lisible si la ligne est incomplète.
@@ -603,8 +609,9 @@ function visitesPourClipper(jeton) {
 }
 
 // Clipper vient de mettre une page en ligne : il inscrit le lien dans l'onglet « Prospects » (plus de copier-coller).
-// Ligne choisie : celle qui a déjà ce lien (mise à jour) ; sinon la première ligne de cette chaîne sans lien ni envoi ;
-// sinon une nouvelle ligne (e-mail et prénom à compléter). Protégé par le même jeton que la lecture des visites.
+// Ligne choisie : celle qui a déjà ce lien (mise à jour) ; sinon la première ligne de cette chaîne ou de cet e-mail
+// sans lien ni envoi ; sinon une nouvelle ligne. E-mail, prénom, chaîne, sujet, passage et invité envoyés par Clipper
+// ne remplissent que les cases vides. Protégé par le même jeton que la lecture des visites.
 function livraisonDepuisClipper(p) {
   const attendu = PropertiesService.getScriptProperties().getProperty('JETON_CLIPPER') || '';
   if (attendu.length < 20 || String(p.jeton || '') !== attendu || !sousLaLimite('livraison-clipper', 120, 3600)) {
@@ -619,31 +626,56 @@ function livraisonDepuisClipper(p) {
   const nb = Math.max(0, Math.min(99, parseInt(p.nb, 10) || 0));
   const simple = (t) => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
 
+  // Ce que Clipper sait déjà (contact du client, ébauche de l'e-mail) : écrit seulement dans les cases vides,
+  // jamais par-dessus ce que tu as saisi dans la feuille.
+  const email = nettoyer(p.email).slice(0, 200);
+  const emailValide = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : '';
+  const complements = [
+    [COL.email, emailValide],
+    [COL.prenom, nettoyer(p.prenom).slice(0, 60)],
+    [COL.chaine, chaine],
+    [COL.sujet, nettoyer(p.sujet).slice(0, 120)],
+    [COL.passage, nettoyer(p.passage).slice(0, 300)],
+    [COL.invite, nettoyer(p.invite).slice(0, 80)],
+  ];
+  const vide = (ligne, col) => !String(ligne.v[col] == null ? '' : ligne.v[col]).trim();
+
   const verrou = LockService.getScriptLock();
   verrou.waitLock(10000);
   try {
     const { feuille, lignes } = lireProspects();
-    const ecrire = (numero) => {
-      feuille.getRange(numero, COL.lien + 1).setValue(lien);
-      if (nb) feuille.getRange(numero, COL.nb + 1).setValue(nb);
+    // Écrit lien, nombre de clips et cases vides ; renvoie le détail pour le message affiché dans Clipper.
+    const ecrire = (ligne) => {
+      feuille.getRange(ligne.numero, COL.lien + 1).setValue(lien);
+      if (nb) feuille.getRange(ligne.numero, COL.nb + 1).setValue(nb);
+      const remplies = [];
+      complements.forEach(([col, valeur]) => {
+        if (valeur && vide(ligne, col)) {
+          feuille.getRange(ligne.numero, col + 1).setValue(protegerFormule(valeur));
+          remplies.push(COLONNES[col]);
+        }
+      });
+      const manque = [COL.email, COL.prenom, COL.sujet, COL.passage]
+        .filter((c) => vide(ligne, c) && !complements.some(([col, valeur]) => col === c && valeur))
+        .map((c) => COLONNES[c]);
+      return (remplies.length ? ' ; rempli : ' + remplies.join(', ') : '') + (manque.length ? ' ; à compléter : ' + manque.join(', ') : '');
     };
     const deja = lignes.find((l) => nomDuSite(l.v[COL.lien]) === page);
     if (deja) {
-      ecrire(deja.numero);
-      return repondre(true, 'lien mis à jour', { ligne: deja.numero, action: 'mise_a_jour' });
+      return repondre(true, 'lien mis à jour' + ecrire(deja), { ligne: deja.numero, action: 'mise_a_jour' });
     }
-    const libre = chaine && lignes.find((l) => simple(l.v[COL.chaine]) === simple(chaine) && !String(l.v[COL.lien]).trim() && !l.v[COL.envoye]);
+    // Ligne préparée à la main pour ce créateur (même chaîne ou même e-mail), pas encore liée ni envoyée.
+    const libre = lignes.find((l) => vide(l, COL.lien) && !l.v[COL.envoye] &&
+      ((chaine && simple(l.v[COL.chaine]) === simple(chaine)) || (emailValide && simple(l.v[COL.email]) === simple(emailValide))));
     if (libre) {
-      ecrire(libre.numero);
-      return repondre(true, 'lien inscrit', { ligne: libre.numero, action: 'rempli' });
+      return repondre(true, 'lien inscrit' + ecrire(libre), { ligne: libre.numero, action: 'rempli' });
     }
     // Première ligne vraiment vide (les cases à cocher pré-remplies font descendre « la dernière ligne » de la feuille).
-    const vide = lignes.find((l) => [COL.email, COL.chaine, COL.lien].every((c) => !String(l.v[c]).trim()) && !l.v[COL.envoye]);
-    const numero = vide ? vide.numero : feuille.getLastRow() + 1;
-    if (chaine) feuille.getRange(numero, COL.chaine + 1).setValue(chaine);
-    ecrire(numero);
-    if (!vide) [COL.envoyer, COL.stop, COL.relance, COL.repondu].forEach((c) => feuille.getRange(numero, c + 1).insertCheckboxes());
-    return repondre(true, 'ligne ajoutée : e-mail et prénom à compléter', { ligne: numero, action: 'ajoutee' });
+    const libreVide = lignes.find((l) => [COL.email, COL.chaine, COL.lien].every((c) => vide(l, c)) && !l.v[COL.envoye]);
+    const ligne = libreVide || { numero: feuille.getLastRow() + 1, v: [] };
+    const detail = ecrire(ligne);
+    if (!libreVide) [COL.envoyer, COL.stop, COL.relance, COL.repondu].forEach((c) => feuille.getRange(ligne.numero, c + 1).insertCheckboxes());
+    return repondre(true, 'ligne ajoutée' + detail, { ligne: ligne.numero, action: 'ajoutee' });
   } finally {
     verrou.releaseLock();
   }
