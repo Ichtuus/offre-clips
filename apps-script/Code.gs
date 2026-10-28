@@ -339,8 +339,8 @@ const NOTES_COLONNES = {
   invite: 'Facultatif : nom de l\'invité. L\'objet devient « … de ta vidéo avec [invité] ».',
   nb: 'Nombre de clips sur la page. Vide : « quelques clips ».',
   phrase: 'Facultatif : une phrase de plus, ajoutée après le lien.',
-  visites: 'Ouvertures de la page depuis l\'envoi de l\'e-mail, comptées automatiquement. Il faut que le site Netlify porte ' +
-    'le nom proposé par Clipper à l\'export. Tes propres visites après l\'envoi comptent aussi.',
+  visites: 'Ouvertures de la page depuis l\'envoi de l\'e-mail, comptées automatiquement (lien R2 donné par Clipper, ' +
+    'ou site Netlify portant le nom proposé). Tes propres visites après l\'envoi comptent aussi. Visible aussi dans Clipper.',
 };
 const MAX_VISITES_PAR_HEURE = 30; // par page : un robot qui recharge en boucle ne remplit pas la feuille
 const JOURS_AVANT_RELANCE = 5;
@@ -556,6 +556,7 @@ function preparerRelances() {
 // donnée sur le visiteur : seulement le nombre d'ouvertures et la date de la dernière.
 
 function doGet(e) {
+  if (e && e.parameter && e.parameter.action === 'visites') return visitesPourClipper(e.parameter.jeton);
   try {
     const page = String((e && e.parameter && e.parameter.page) || '').trim().toLowerCase();
     if (/^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/.test(page) && sousLaLimite('visite:' + page, MAX_VISITES_PAR_HEURE, 3600)) {
@@ -565,6 +566,31 @@ function doGet(e) {
     console.error('Visite non comptée', erreur);
   }
   return ContentService.createTextOutput('');
+}
+
+// Pour le tableau de bord de Clipper : ouvertures de chaque page, sans aucune donnée personnelle
+// (ni e-mail, ni prénom) — nom de la page, date d'envoi, nombre et date des ouvertures.
+// Protégé par un jeton secret : propriété du script JETON_CLIPPER, la même que SUIVI_JETON dans le .env de Clipper.
+function visitesPourClipper(jeton) {
+  const attendu = PropertiesService.getScriptProperties().getProperty('JETON_CLIPPER') || '';
+  const json = (objet) => ContentService.createTextOutput(JSON.stringify(objet)).setMimeType(ContentService.MimeType.JSON);
+  if (attendu.length < 20 || String(jeton || '') !== attendu || !sousLaLimite('visites-clipper', 120, 3600)) {
+    return json({ ok: false });
+  }
+  const pages = {};
+  lireProspects().lignes.forEach((l) => {
+    const page = nomDuSite(l.v[COL.lien]);
+    const envoi = l.v[COL.envoye];
+    if (!page || !(envoi instanceof Date)) return;
+    const derniere = l.v[COL.derniereVisite];
+    pages[page] = {
+      envoye: envoi.toISOString(),
+      visites: Number(l.v[COL.visites]) || 0,
+      derniere: derniere instanceof Date ? derniere.toISOString() : null,
+      stop: l.v[COL.stop] === true,
+    };
+  });
+  return json({ ok: true, pages: pages });
 }
 
 function compterVisite(page) {
