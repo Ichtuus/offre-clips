@@ -127,6 +127,7 @@ const TYPES = {
 function doPost(e) {
   try {
     const p = e.parameter || {};
+    if (p.action === 'livraison') return livraisonDepuisClipper(p); // Clipper, avec le jeton secret
     if (p._honey) return repondre(true, 'reçu'); // robot : on fait comme si de rien n'était
     const type = TYPES[p.type];
     if (!type) return refuser('Type de formulaire inconnu.');
@@ -599,6 +600,53 @@ function visitesPourClipper(jeton) {
     };
   });
   return json({ ok: true, pages: pages });
+}
+
+// Clipper vient de mettre une page en ligne : il inscrit le lien dans l'onglet « Prospects » (plus de copier-coller).
+// Ligne choisie : celle qui a déjà ce lien (mise à jour) ; sinon la première ligne de cette chaîne sans lien ni envoi ;
+// sinon une nouvelle ligne (e-mail et prénom à compléter). Protégé par le même jeton que la lecture des visites.
+function livraisonDepuisClipper(p) {
+  const attendu = PropertiesService.getScriptProperties().getProperty('JETON_CLIPPER') || '';
+  if (attendu.length < 20 || String(p.jeton || '') !== attendu || !sousLaLimite('livraison-clipper', 120, 3600)) {
+    return repondre(false, 'refusé');
+  }
+  const page = String(p.page || '').trim().toLowerCase();
+  const lien = nettoyer(p.lien);
+  if (!/^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/.test(page) || !/^https:\/\/[^\s"'<>]+$/.test(lien) || nomDuSite(lien) !== page) {
+    return repondre(false, 'lien ou nom de page invalide');
+  }
+  const chaine = protegerFormule(nettoyer(p.chaine).slice(0, 120));
+  const nb = Math.max(0, Math.min(99, parseInt(p.nb, 10) || 0));
+  const simple = (t) => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+
+  const verrou = LockService.getScriptLock();
+  verrou.waitLock(10000);
+  try {
+    const { feuille, lignes } = lireProspects();
+    const ecrire = (numero) => {
+      feuille.getRange(numero, COL.lien + 1).setValue(lien);
+      if (nb) feuille.getRange(numero, COL.nb + 1).setValue(nb);
+    };
+    const deja = lignes.find((l) => nomDuSite(l.v[COL.lien]) === page);
+    if (deja) {
+      ecrire(deja.numero);
+      return repondre(true, 'lien mis à jour', { ligne: deja.numero, action: 'mise_a_jour' });
+    }
+    const libre = chaine && lignes.find((l) => simple(l.v[COL.chaine]) === simple(chaine) && !String(l.v[COL.lien]).trim() && !l.v[COL.envoye]);
+    if (libre) {
+      ecrire(libre.numero);
+      return repondre(true, 'lien inscrit', { ligne: libre.numero, action: 'rempli' });
+    }
+    // Première ligne vraiment vide (les cases à cocher pré-remplies font descendre « la dernière ligne » de la feuille).
+    const vide = lignes.find((l) => [COL.email, COL.chaine, COL.lien].every((c) => !String(l.v[c]).trim()) && !l.v[COL.envoye]);
+    const numero = vide ? vide.numero : feuille.getLastRow() + 1;
+    if (chaine) feuille.getRange(numero, COL.chaine + 1).setValue(chaine);
+    ecrire(numero);
+    if (!vide) [COL.envoyer, COL.stop, COL.relance, COL.repondu].forEach((c) => feuille.getRange(numero, c + 1).insertCheckboxes());
+    return repondre(true, 'ligne ajoutée : e-mail et prénom à compléter', { ligne: numero, action: 'ajoutee' });
+  } finally {
+    verrou.releaseLock();
+  }
 }
 
 function compterVisite(page) {
