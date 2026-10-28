@@ -330,9 +330,11 @@ function testerAccuse() {
 
 const ONGLET_PROSPECTS = 'Prospects';
 const COLONNES = ['Envoyer', 'E-mail', 'Prénom', 'Chaîne', 'Lien de la page', 'Phrase perso', 'Envoyé le', 'Ne plus contacter', 'Résultat',
-  'Sujet', 'Passage', 'Invité', 'Nb clips', 'Relance prévue le', 'Relancé', 'Texte de relance', 'Visites', 'Dernière visite'];
+  'Sujet', 'Passage', 'Invité', 'Nb clips', 'Relance prévue le', 'Relancé', 'Texte de relance', 'Visites', 'Dernière visite',
+  'Première visite', 'A répondu'];
 const COL = { envoyer: 0, email: 1, prenom: 2, chaine: 3, lien: 4, phrase: 5, envoye: 6, stop: 7, resultat: 8,
-  sujet: 9, passage: 10, invite: 11, nb: 12, relanceLe: 13, relance: 14, texteRelance: 15, visites: 16, derniereVisite: 17 };
+  sujet: 9, passage: 10, invite: 11, nb: 12, relanceLe: 13, relance: 14, texteRelance: 15, visites: 16, derniereVisite: 17,
+  premiereVisite: 18, repondu: 19 };
 const NOTES_COLONNES = {
   sujet: 'Sujet de la vidéo, tel qu\'il suit « ta vidéo sur… ». Ex. : ton dernier freestyle',
   passage: 'Passage précis, tel qu\'il suit « le passage où… ». Ex. : tu expliques pourquoi le refrain a été réécrit',
@@ -341,6 +343,8 @@ const NOTES_COLONNES = {
   phrase: 'Facultatif : une phrase de plus, ajoutée après le lien.',
   visites: 'Ouvertures de la page depuis l\'envoi de l\'e-mail, comptées automatiquement (lien R2 donné par Clipper, ' +
     'ou site Netlify portant le nom proposé). Tes propres visites après l\'envoi comptent aussi. Visible aussi dans Clipper.',
+  premiereVisite: 'Date de la première ouverture de la page après l\'envoi : combien de temps il a mis à cliquer.',
+  repondu: 'À cocher quand le prospect répond : plus de relance prévue, et Clipper ne le signale plus « à relancer ».',
 };
 const MAX_VISITES_PAR_HEURE = 30; // par page : un robot qui recharge en boucle ne remplit pas la feuille
 const JOURS_AVANT_RELANCE = 5;
@@ -367,11 +371,12 @@ function preparerOngletProspects() {
   feuille.setFrozenRows(1);
   const lignes = Math.max(feuille.getMaxRows() - 1, 200);
   if (feuille.getMaxRows() < lignes + 1) feuille.insertRowsAfter(feuille.getMaxRows(), lignes + 1 - feuille.getMaxRows());
-  [COL.envoyer, COL.stop, COL.relance].forEach((c) => feuille.getRange(2, c + 1, lignes, 1).insertCheckboxes());
+  [COL.envoyer, COL.stop, COL.relance, COL.repondu].forEach((c) => feuille.getRange(2, c + 1, lignes, 1).insertCheckboxes());
   feuille.getRange(2, COL.envoye + 1, lignes, 1).setNumberFormat('dd/mm/yyyy hh:mm');
   feuille.getRange(2, COL.relanceLe + 1, lignes, 1).setNumberFormat('dd/mm/yyyy');
   feuille.getRange(2, COL.derniereVisite + 1, lignes, 1).setNumberFormat('dd/mm/yyyy hh:mm');
-  [70, 220, 110, 160, 280, 260, 130, 120, 260, 220, 320, 140, 80, 130, 80, 420, 70, 130].forEach((largeur, i) => feuille.setColumnWidth(i + 1, largeur));
+  feuille.getRange(2, COL.premiereVisite + 1, lignes, 1).setNumberFormat('dd/mm/yyyy hh:mm');
+  [70, 220, 110, 160, 280, 260, 130, 120, 260, 220, 320, 140, 80, 130, 80, 420, 70, 130, 130, 90].forEach((largeur, i) => feuille.setColumnWidth(i + 1, largeur));
   [COL.phrase, COL.passage, COL.texteRelance].forEach((c) => feuille.getRange(2, c + 1, lignes, 1).setWrap(true));
 
   // Date de relance pour les prospects déjà contactés qui n'en ont pas encore.
@@ -382,7 +387,7 @@ function preparerOngletProspects() {
   // Ligne surlignée quand la relance est due (date atteinte, pas encore relancé, pas de refus).
   const lettre = (c) => String.fromCharCode(65 + c);
   const regle = SpreadsheetApp.newConditionalFormatRule()
-    .whenFormulaSatisfied('=AND($' + lettre(COL.relanceLe) + '2<>"", $' + lettre(COL.relanceLe) + '2<=TODAY(), $' + lettre(COL.relance) + '2<>TRUE, $' + lettre(COL.stop) + '2<>TRUE)')
+    .whenFormulaSatisfied('=AND($' + lettre(COL.relanceLe) + '2<>"", $' + lettre(COL.relanceLe) + '2<=TODAY(), $' + lettre(COL.relance) + '2<>TRUE, $' + lettre(COL.stop) + '2<>TRUE, $' + lettre(COL.repondu) + '2<>TRUE)')
     .setBackground('#fde2ea')
     .setRanges([feuille.getRange(2, 1, lignes, COLONNES.length)])
     .build();
@@ -534,7 +539,7 @@ function preparerRelances() {
   let prets = 0, incomplets = 0;
   lignes.forEach((l) => {
     const prevue = l.v[COL.relanceLe];
-    if (!(prevue instanceof Date) || prevue > aujourdhui || l.v[COL.relance] === true || l.v[COL.stop] === true) return;
+    if (!(prevue instanceof Date) || prevue > aujourdhui || l.v[COL.relance] === true || l.v[COL.stop] === true || l.v[COL.repondu] === true) return;
     const cellule = feuille.getRange(l.numero, COL.texteRelance + 1);
     try {
       cellule.setValue(texteRelance(l.v));
@@ -583,10 +588,13 @@ function visitesPourClipper(jeton) {
     const envoi = l.v[COL.envoye];
     if (!page || !(envoi instanceof Date)) return;
     const derniere = l.v[COL.derniereVisite];
+    const premiere = l.v[COL.premiereVisite];
     pages[page] = {
       envoye: envoi.toISOString(),
       visites: Number(l.v[COL.visites]) || 0,
+      premiere: premiere instanceof Date ? premiere.toISOString() : null,
       derniere: derniere instanceof Date ? derniere.toISOString() : null,
+      repondu: l.v[COL.repondu] === true,
       stop: l.v[COL.stop] === true,
     };
   });
@@ -605,6 +613,7 @@ function compterVisite(page) {
       if (nomDuSite(l.v[COL.lien]) !== page || !(envoi instanceof Date) || envoi > maintenant) return;
       feuille.getRange(l.numero, COL.visites + 1).setValue((Number(l.v[COL.visites]) || 0) + 1);
       feuille.getRange(l.numero, COL.derniereVisite + 1).setValue(maintenant);
+      if (!(l.v[COL.premiereVisite] instanceof Date)) feuille.getRange(l.numero, COL.premiereVisite + 1).setValue(maintenant);
     });
   } finally {
     verrou.releaseLock();

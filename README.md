@@ -58,7 +58,7 @@ Chaque demande porte une référence unique, ce qui évite les doublons lors des
 
 Après une modification : Déployer → Gérer les déploiements → nouvelle version. L'URL ne change pas.
 
-La feuille dispose aussi d'un menu « Clips » : envoi des premiers e-mails de contact en texte brut depuis l'onglet « Prospects », et préparation des relances. Ces fonctions ne sont accessibles qu'au propriétaire de la feuille.
+La feuille dispose aussi d'un menu « Clips » : envoi des premiers e-mails de contact en texte brut depuis l'onglet « Prospects », et préparation des relances. Colonnes de suivi : « Visites », « Dernière visite », « Première visite » (remplies par le compteur) et « A répondu » (case à cocher quand le prospect répond : plus de relance prévue). Après une mise à jour du script : Clips → Créer ou réparer l'onglet Prospects, pour ajouter les nouvelles colonnes. Ces fonctions ne sont accessibles qu'au propriétaire de la feuille.
 
 Le même déploiement compte les visites des pages de livraison envoyées aux prospects (`doGet`, colonnes « Visites » et « Dernière visite » de l'onglet « Prospects ») : Clipper pose une image vide qui appelle l'URL de `charte/theme.json` → `suivi.compteur`, avec le nom de la page (le dossier sur Cloudflare R2, ou le nom du site Netlify : les deux formats de lien sont reconnus). Si l'URL du déploiement change, la mettre à jour là, puis `node charte/synchroniser.mjs`. Clipper lit aussi ces ouvertures pour son tableau de bord (`?action=visites`, réponse sans donnée personnelle), protégé par un jeton : dans Apps Script, Paramètres du projet → Propriétés du script → `JETON_CLIPPER` = la valeur `SUIVI_JETON` du `.env` de Clipper.
 
