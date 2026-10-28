@@ -551,7 +551,7 @@ function preparerRelances() {
 
 // --- Compteur de visites des pages de livraison ----------------------------------------
 // Clipper pose en bas de chaque page de prospection une image vide qui appelle ce script avec
-// page=<nom du site Netlify>. La ligne de l'onglet « Prospects » dont le lien porte ce nom gagne une visite,
+// page=<nom de la page> (site Netlify ou dossier R2). La ligne de l'onglet « Prospects » dont le lien porte ce nom gagne une visite,
 // seulement après l'envoi de l'e-mail (tes vérifications d'avant ne comptent pas). Aucun cookie, aucune
 // donnée sur le visiteur : seulement le nombre d'ouvertures et la date de la dernière.
 
@@ -585,9 +585,14 @@ function compterVisite(page) {
   }
 }
 
-// « https://karim-rap-7k3q.netlify.app/ » → « karim-rap-7k3q »
+// Nom de la page dans le lien envoyé :
+//   « https://karim-rap-7k3q.netlify.app/ »                    → « karim-rap-7k3q » (Netlify, nom du site)
+//   « https://pub-xxxx.r2.dev/karim-rap-7k3q/index.html »      → « karim-rap-7k3q » (Cloudflare R2, dossier)
 function nomDuSite(lien) {
-  const m = String(lien || '').trim().toLowerCase().match(/^https?:\/\/([a-z0-9-]+)\./);
+  const texte = String(lien || '').trim().toLowerCase();
+  const r2 = texte.match(/^https:\/\/[a-z0-9-]+\.r2\.dev\/([a-z0-9-]+)\//);
+  if (r2) return r2[1];
+  const m = texte.match(/^https?:\/\/([a-z0-9-]+)\./);
   return m ? m[1] : '';
 }
 
