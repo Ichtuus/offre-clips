@@ -434,7 +434,9 @@ function passageDe(v) {
 function messageProspect(v) {
   const email = String(v[COL.email]).trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('adresse e-mail invalide');
-  const page = String(v[COL.lien]).trim().replace(/index\.html$/, '').replace(/\/?$/, '/');
+  // Lien gardé tel quel sur R2, qui ne sert pas l'index d'un dossier ; adresse courte sur Netlify.
+  const lien = String(v[COL.lien]).trim();
+  const page = /\.r2\.dev\//.test(lien) ? lien : lien.replace(/index\.html$/, '').replace(/\/?$/, '/');
   if (!lienSur(page)) throw new Error('lien de la page manquant ou invalide (https://… attendu)');
   const sujet = texteCellule(v, 'sujet', 120);
   const passage = passageDe(v);
