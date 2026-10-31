@@ -332,14 +332,15 @@ function testerAccuse() {
 const ONGLET_PROSPECTS = 'Prospects';
 const COLONNES = ['Envoyer', 'E-mail', 'Prénom', 'Chaîne', 'Lien de la page', 'Phrase perso', 'Envoyé le', 'Ne plus contacter', 'Résultat',
   'Sujet', 'Passage', 'Invité', 'Nb clips', 'Relance prévue le', 'Relancé', 'Texte de relance', 'Visites', 'Dernière visite',
-  'Première visite', 'A répondu'];
+  'Première visite', 'A répondu', 'Objet'];
 const COL = { envoyer: 0, email: 1, prenom: 2, chaine: 3, lien: 4, phrase: 5, envoye: 6, stop: 7, resultat: 8,
   sujet: 9, passage: 10, invite: 11, nb: 12, relanceLe: 13, relance: 14, texteRelance: 15, visites: 16, derniereVisite: 17,
-  premiereVisite: 18, repondu: 19 };
+  premiereVisite: 18, repondu: 19, objet: 20 };
 const NOTES_COLONNES = {
   sujet: 'Sujet de la vidéo, tel qu\'il suit « ta vidéo sur… ». Ex. : ton dernier freestyle',
-  passage: 'Passage précis, tel qu\'il suit « le passage où… ». Ex. : tu expliques pourquoi le refrain a été réécrit',
-  invite: 'Facultatif : nom de l\'invité. L\'objet devient « … de ta vidéo avec [invité] ».',
+  passage: 'Moment précis, tel qu\'il suit « J\'ai bien aimé… ». Ex. : ton image de la Porsche',
+  objet: 'Objet de l\'e-mail : 3 à 6 mots, un détail de la vidéo. Ex. : tes bac+5 et la Porsche. Vide : « 4 clips de ta vidéo sur… ».',
+  invite: 'Facultatif : nom de l\'invité, si l\'objet est vide : « … de ta vidéo avec [invité] ».',
   nb: 'Nombre de clips sur la page. Vide : « quelques clips ».',
   phrase: 'Facultatif : une phrase de plus, ajoutée après le lien.',
   visites: 'Ouvertures de la page depuis l\'envoi de l\'e-mail, comptées automatiquement (lien R2 donné par Clipper, ' +
@@ -403,6 +404,11 @@ function preparerOngletProspects() {
 function lireProspects() {
   const feuille = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ONGLET_PROSPECTS);
   if (!feuille) throw new Error('Onglet « Prospects » absent : menu Clips → Créer ou réparer l\'onglet Prospects.');
+  // Colonne ajoutée depuis la création de l'onglet : créée ici, sans attendre « Créer ou réparer l'onglet ».
+  if (feuille.getMaxColumns() < COLONNES.length) feuille.insertColumnsAfter(feuille.getMaxColumns(), COLONNES.length - feuille.getMaxColumns());
+  if (feuille.getRange(1, COLONNES.length).getValue() !== COLONNES[COLONNES.length - 1]) {
+    feuille.getRange(1, COLONNES.length).setValue(COLONNES[COLONNES.length - 1]).setFontWeight('bold');
+  }
   const valeurs = feuille.getLastRow() < 2 ? [] : feuille.getRange(2, 1, feuille.getLastRow() - 1, COLONNES.length).getValues();
   return { feuille: feuille, lignes: valeurs.map((v, i) => ({ numero: i + 2, v: v })) };
 }
@@ -431,6 +437,14 @@ function passageDe(v) {
 }
 
 // Construit l'e-mail d'une ligne. Lève une erreur lisible si la ligne est incomplète.
+// Moment cité dans l'e-mail. Les lignes écrites avant le 2026-11 ont une proposition (« tu expliques… ») : on garde leur sens.
+function momentDe(v) {
+  const p = passageDe(v);
+  return /^(\S+\s+){0,3}?(expliques?|racontes?|montres?|dis|dit|compares?|révèles?|décris|décrit|parles?)\b/i.test(p) ? 'le passage où ' + p : p;
+}
+
+// Envoyé aussi en HTML sans aucune mise en forme, comme un message tapé dans Gmail : il suit la largeur de l'écran, alors
+// que le texte brut est coupé à 70 caractères par l'envoi (retours à la ligne en pleine phrase, bien visibles sur téléphone).
 function messageProspect(v) {
   const email = String(v[COL.email]).trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('adresse e-mail invalide');
@@ -447,17 +461,22 @@ function messageProspect(v) {
   const phrase = String(v[COL.phrase] == null ? '' : v[COL.phrase]).trim().slice(0, LONGUEUR_MAX);
 
   const clips = nb > 1 ? nb + ' clips' : nb === 1 ? 'un clip' : 'quelques clips';
-  const objet = (nb > 1 ? nb + ' clips' : nb === 1 ? 'Un clip' : 'Des clips') + ' de ta vidéo ' + (invite ? 'avec ' + invite : 'sur ' + sujet);
-  const texte = [
-    prenom ? 'Salut ' + prenom + ',' : 'Salut,',
+  const chaine = texteCellule(v, 'chaine', 60);
+  const objet = texteCellule(v, 'objet', 80) ||
+    (nb > 1 ? nb + ' clips' : nb === 1 ? 'Un clip' : 'Des clips') + ' de ta vidéo ' + (invite ? 'avec ' + invite : 'sur ' + sujet);
+  const fin = nb === 1 ? '' : 's';
+  const debut = 'Du coup j\'ai sorti ';
+  const lienTexte = clips + ' sous-titré' + fin;
+  const suite = ', prêt' + fin + ' à poster en Short, TikTok ou Reel';
+  const lignes = (ligneClips) => [
+    'Salut' + (prenom || chaine ? ' ' + (prenom || chaine) : '') + ',',
     '',
-    'J\'ai regardé ta vidéo sur ' + sujet + ', et le passage où ' + passage + ' m\'a semblé parfait en format court. ' +
-      'J\'en ai sorti ' + clips + ' sous-titré' + (nb === 1 ? '' : 's') + ', prêt' + (nb === 1 ? '' : 's') + ' à poster en Short, TikTok ou Reel :',
+    'J\'ai regardé ta vidéo sur ' + sujet + '. J\'ai bien aimé ' + momentDe(v) + ', ça marcherait super bien en format court.',
     '',
-    page,
+    ligneClips,
     phrase ? '\n' + phrase : '',
     '',
-    'C\'est cadeau : tu les postes ou pas, comme tu veux.',
+    'C\'est cadeau, tu en fais ce que tu veux.',
     '',
     // Une seule question, à laquelle on répond par oui ou non : c'est ce qui fait répondre.
     'Tu veux que je fasse pareil sur ta prochaine vidéo ?',
@@ -467,7 +486,11 @@ function messageProspect(v) {
     // Obligatoire en prospection (art. L34-5 CPCE) : un moyen simple de ne plus être contacté.
     'PS : si ce n\'est pas pour toi, dis-le-moi et je ne t\'écrirai plus.',
   ].join('\n').replace(/\n{3,}/g, '\n\n');
-  return { email: email, objet: objet, texte: texte };
+  // Le texte brut garde l'adresse en clair (messageries sans HTML) ; le HTML la met derrière les mots.
+  const texte = lignes(debut + lienTexte + suite + ' :\n' + page);
+  const html = lignes('@@CLIPS@@').split('\n').map((l) => (l ? '<div>' + echapper(l) + '</div>' : '<div><br></div>')).join('')
+    .replace('@@CLIPS@@', echapper(debut) + '<a href="' + echapper(page) + '">' + echapper(lienTexte) + '</a>' + echapper(suite) + '.');
+  return { email: email, objet: objet, texte: texte, html: html };
 }
 
 function texteRelance(v) {
@@ -475,11 +498,12 @@ function texteRelance(v) {
   const sujet = texteCellule(v, 'sujet', 120);
   const passage = passageDe(v);
   if (!sujet || !passage) throw new Error('remplis « Sujet » et « Passage » pour préparer la relance');
+  const moment = momentDe(v);
   return [
     prenom ? 'Salut ' + prenom + ',' : 'Salut,',
     '',
-    'Petite relance pour les clips de ta vidéo sur ' + sujet + '. Le passage où ' + passage +
-      ' est celui que je posterais en premier.',
+    'Petite relance pour les clips de ta vidéo sur ' + sujet + '. ' + moment.charAt(0).toUpperCase() + moment.slice(1) +
+      ', c\'est ce que je posterais en premier.',
     '',
     'Tu as eu le temps d\'y jeter un œil ? Même un « pas pour moi » me va très bien.',
     '',
@@ -509,7 +533,7 @@ function envoyerProspects() {
     if (dejaContactes.has(cle)) { resultat.setValue('Ignoré : déjà contacté'); ignores++; return; }
     try {
       const m = messageProspect(l.v);
-      MailApp.sendEmail({ to: m.email, name: EXPEDITEUR, subject: m.objet, body: m.texte });
+      MailApp.sendEmail({ to: m.email, name: EXPEDITEUR, subject: m.objet, body: m.texte, htmlBody: m.html });
       const maintenant = new Date();
       feuille.getRange(l.numero, COL.envoye + 1).setValue(maintenant);
       feuille.getRange(l.numero, COL.relanceLe + 1).setValue(dateRelance(maintenant));
@@ -532,7 +556,7 @@ function apercuProspect() {
   if (!ligne) return ui.alert('Coche une ligne dans « Envoyer » pour l\'aperçu.');
   try {
     const m = messageProspect(ligne.v);
-    MailApp.sendEmail({ to: DESTINATAIRE, name: EXPEDITEUR, subject: '[Aperçu] ' + m.objet, body: m.texte });
+    MailApp.sendEmail({ to: DESTINATAIRE, name: EXPEDITEUR, subject: '[Aperçu] ' + m.objet, body: m.texte, htmlBody: m.html });
     ui.alert('Aperçu envoyé sur ' + DESTINATAIRE + '.');
   } catch (erreur) {
     ui.alert('Ligne ' + ligne.numero + ' : ' + erreur.message);
@@ -638,6 +662,7 @@ function livraisonDepuisClipper(p) {
     [COL.chaine, chaine],
     [COL.sujet, nettoyer(p.sujet).slice(0, 120)],
     [COL.passage, nettoyer(p.passage).slice(0, 300)],
+    [COL.objet, nettoyer(p.objet).slice(0, 80)],
     [COL.invite, nettoyer(p.invite).slice(0, 80)],
   ];
   const vide = (ligne, col) => !String(ligne.v[col] == null ? '' : ligne.v[col]).trim();
