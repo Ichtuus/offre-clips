@@ -37,6 +37,8 @@ const CHARTE = {
   "offre": {
     "usage": "À poster en Shorts, TikTok et Reels : chaque clip fait découvrir ta chaîne à de nouvelles personnes et les renvoie vers ta vidéo longue.",
     "usage_chaine_extraits": "Tu fais des podcasts, des interviews ou des lives ? Je peux aussi te livrer des extraits horizontaux de 2 à 5 minutes, pour alimenter une chaîne d'extraits.",
+    "pas_un_logiciel": "Pas un logiciel de découpe : je regarde ta vidéo, je choisis les passages qui marchent, je corrige chaque sous-titre et je te livre des clips prêts à poster. Toi, tu publies.",
+    "pas_un_logiciel_email": "Pas du découpage automatique : j'ai choisi les passages et relu chaque sous-titre.",
     "lien": "https://ichtuus.github.io/offre-clips/#prix",
     "formules": [
       {
@@ -475,6 +477,8 @@ function messageProspect(v) {
     'J\'ai regardé ta vidéo sur ' + sujet + '. J\'ai bien aimé ' + momentDe(v) + ', ça marcherait super bien en format court.',
     '',
     ligneClips,
+    // Réponse d'avance à « j'ai déjà un logiciel » (charte : offre.pas_un_logiciel_email).
+    CHARTE.offre.pas_un_logiciel_email ? '\n' + CHARTE.offre.pas_un_logiciel_email : '',
     phrase ? '\n' + phrase : '',
     '',
     'C\'est cadeau, tu en fais ce que tu veux.',
