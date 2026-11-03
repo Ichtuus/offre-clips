@@ -128,6 +128,7 @@ function doPost(e) {
   try {
     const p = e.parameter || {};
     if (p.action === 'livraison') return livraisonDepuisClipper(p); // Clipper, avec le jeton secret
+    if (p.action === 'prospect') return prospectDepuisClipper(p);   // page Prospects de Clipper, même jeton
     if (p._honey) return repondre(true, 'reçu'); // robot : on fait comme si de rien n'était
     const type = TYPES[p.type];
     if (!type) return refuser('Type de formulaire inconnu.');
@@ -527,26 +528,38 @@ function envoyerProspects() {
 
   let envoyes = 0, ignores = 0, erreurs = 0;
   aEnvoyer.slice(0, quota).forEach((l) => {
-    const cle = String(l.v[COL.email]).trim().toLowerCase();
     const resultat = feuille.getRange(l.numero, COL.resultat + 1);
-    if (stop.has(cle)) { resultat.setValue('Ignoré : ne plus contacter'); ignores++; return; }
-    if (dejaContactes.has(cle)) { resultat.setValue('Ignoré : déjà contacté'); ignores++; return; }
     try {
-      const m = messageProspect(l.v);
-      MailApp.sendEmail({ to: m.email, name: EXPEDITEUR, subject: m.objet, body: m.texte, htmlBody: m.html });
-      const maintenant = new Date();
-      feuille.getRange(l.numero, COL.envoye + 1).setValue(maintenant);
-      feuille.getRange(l.numero, COL.relanceLe + 1).setValue(dateRelance(maintenant));
-      feuille.getRange(l.numero, COL.envoyer + 1).setValue(false);
-      resultat.setValue('Envoyé');
-      dejaContactes.add(cle);
+      envoyerLigne(feuille, l, lignes);
       envoyes++;
     } catch (erreur) {
-      resultat.setValue('Erreur : ' + erreur.message);
-      erreurs++;
+      const ignore = erreur instanceof Ignore;
+      resultat.setValue((ignore ? 'Ignoré : ' : 'Erreur : ') + erreur.message);
+      if (ignore) ignores++; else erreurs++;
     }
   });
   ui.alert(envoyes + ' envoyé(s), ' + ignores + ' ignoré(s), ' + erreurs + ' en erreur. Détail dans la colonne « Résultat ».');
+}
+
+// Envoi refusé par une règle (pas une panne) : la ligne est « ignorée ».
+class Ignore extends Error {}
+
+// Envoie l'e-mail d'une ligne et l'inscrit comme envoyée. Mêmes règles depuis le menu de la feuille et depuis Clipper :
+// jamais à une adresse « ne plus contacter » ni deux fois à la même adresse, et le quota du jour garde de quoi répondre.
+function envoyerLigne(feuille, l, lignes) {
+  const cle = String(l.v[COL.email]).trim().toLowerCase();
+  const memeAdresse = lignes.filter((x) => String(x.v[COL.email]).trim().toLowerCase() === cle);
+  if (memeAdresse.some((x) => x.v[COL.stop] === true)) throw new Ignore('ne plus contacter');
+  if (memeAdresse.some((x) => x.v[COL.envoye])) throw new Ignore('déjà contacté');
+  if (MailApp.getRemainingDailyQuota() - MARGE_QUOTA <= 0) throw new Error('quota Gmail du jour presque atteint, réessaie demain');
+  const m = messageProspect(l.v);
+  MailApp.sendEmail({ to: m.email, name: EXPEDITEUR, subject: m.objet, body: m.texte, htmlBody: m.html });
+  const maintenant = new Date();
+  feuille.getRange(l.numero, COL.envoye + 1).setValue(maintenant);
+  feuille.getRange(l.numero, COL.relanceLe + 1).setValue(dateRelance(maintenant));
+  feuille.getRange(l.numero, COL.envoyer + 1).setValue(false);
+  feuille.getRange(l.numero, COL.resultat + 1).setValue('Envoyé');
+  l.v[COL.envoye] = maintenant; // les lignes suivantes du même envoi voient l'adresse comme contactée
 }
 
 // Envoie le premier prospect coché à ta propre adresse, sans rien changer dans la feuille.
@@ -595,6 +608,7 @@ function preparerRelances() {
 
 function doGet(e) {
   if (e && e.parameter && e.parameter.action === 'visites') return visitesPourClipper(e.parameter.jeton);
+  if (e && e.parameter && e.parameter.action === 'prospects') return prospectsPourClipper(e.parameter.jeton);
   try {
     const page = String((e && e.parameter && e.parameter.page) || '').trim().toLowerCase();
     if (/^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/.test(page) && sousLaLimite('visite:' + page, MAX_VISITES_PAR_HEURE, 3600)) {
@@ -632,6 +646,83 @@ function visitesPourClipper(jeton) {
     };
   });
   return json({ ok: true, pages: pages });
+}
+
+// --- Page Prospects de Clipper -------------------------------------------------------------
+// Clipper lit et modifie l'onglet « Prospects » (la feuille reste le stockage : visites, formulaires et livraisons y
+// arrivent déjà). Ici, les données personnelles (e-mail, prénom) partent vers Clipper : même jeton secret que les visites.
+const CHAMPS_CLIPPER = { email: 200, prenom: 60, chaine: 120, lien: 300, phrase: LONGUEUR_MAX, objet: 80, sujet: 120, passage: 300, invite: 80 };
+
+function jetonClipper(jeton, cle) {
+  const attendu = PropertiesService.getScriptProperties().getProperty('JETON_CLIPPER') || '';
+  return attendu.length >= 20 && String(jeton || '') === attendu && sousLaLimite(cle, 600, 3600);
+}
+
+function prospectJson(l) {
+  const v = l.v;
+  const iso = (d) => (d instanceof Date ? d.toISOString() : null);
+  let apercu = null, erreur = '', relance = '';
+  try { const m = messageProspect(v); apercu = { a: m.email, objet: m.objet, texte: m.texte }; } catch (e) { erreur = e.message; }
+  try { relance = texteRelance(v); } catch (e) { relance = ''; }
+  const champ = (k) => String(v[COL[k]] == null ? '' : v[COL[k]]).trim();
+  return {
+    ligne: l.numero, email: champ('email'), prenom: champ('prenom'), chaine: champ('chaine'), lien: champ('lien'),
+    page: nomDuSite(v[COL.lien]), phrase: champ('phrase'), objet: champ('objet'), sujet: champ('sujet'), passage: champ('passage'),
+    invite: champ('invite'), nb: parseInt(v[COL.nb], 10) || 0, envoye: iso(v[COL.envoye]), resultat: champ('resultat'),
+    stop: v[COL.stop] === true, repondu: v[COL.repondu] === true, relanceLe: iso(v[COL.relanceLe]), relance: v[COL.relance] === true,
+    visites: Number(v[COL.visites]) || 0, premiere: iso(v[COL.premiereVisite]), derniere: iso(v[COL.derniereVisite]),
+    apercu: apercu, erreur: erreur, texteRelance: relance,
+  };
+}
+
+function prospectsPourClipper(jeton) {
+  const json = (objet) => ContentService.createTextOutput(JSON.stringify(objet)).setMimeType(ContentService.MimeType.JSON);
+  if (!jetonClipper(jeton, 'prospects-clipper')) return json({ ok: false });
+  const lignes = lireProspects().lignes.filter((l) => [COL.email, COL.chaine, COL.lien].some((c) => String(l.v[c] || '').trim()));
+  return json({ ok: true, prospects: lignes.map(prospectJson), quota: Math.max(0, MailApp.getRemainingDailyQuota() - MARGE_QUOTA) });
+}
+
+// op : nouveau, modifier, envoyer, apercu (vers ta propre adresse), repondu, stop, relance. Pour une ligne existante,
+// `attendu` = son e-mail tel que Clipper l'a lu : si la feuille a bougé entre-temps (tri, ligne supprimée), on refuse.
+function prospectDepuisClipper(p) {
+  if (!jetonClipper(p.jeton, 'prospect-clipper')) return repondre(false, 'refusé');
+  const verrou = LockService.getScriptLock();
+  verrou.waitLock(10000);
+  try {
+    const { feuille, lignes } = lireProspects();
+    const ecrireChamps = (numero) => Object.keys(CHAMPS_CLIPPER).forEach((k) => {
+      if (p[k] === undefined) return;
+      const valeur = protegerFormule(nettoyer(p[k]).slice(0, CHAMPS_CLIPPER[k]));
+      if (k === 'email' && valeur && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valeur)) throw new Ignore('adresse e-mail invalide');
+      if (k === 'lien' && valeur && !lienSur(valeur)) throw new Ignore('lien invalide (https://… attendu)');
+      feuille.getRange(numero, COL[k] + 1).setValue(valeur);
+    });
+    const relire = (numero) => prospectJson(lireProspects().lignes.find((x) => x.numero === numero));
+    if (p.op === 'nouveau') {
+      const numero = Math.max(feuille.getLastRow() + 1, 2);
+      ecrireChamps(numero);
+      return repondre(true, 'Prospect ajouté.', { prospect: relire(numero) });
+    }
+    const l = lignes.find((x) => x.numero === parseInt(p.ligne, 10));
+    if (!l || String(l.v[COL.email]).trim().toLowerCase() !== String(p.attendu || '').trim().toLowerCase()) {
+      return repondre(false, 'La feuille a changé depuis : recharge la page.');
+    }
+    let message = 'Enregistré.';
+    if (p.op === 'modifier') ecrireChamps(l.numero);
+    else if (p.op === 'envoyer') { envoyerLigne(feuille, l, lignes); message = 'E-mail envoyé depuis ton Gmail.'; }
+    else if (p.op === 'apercu') {
+      const m = messageProspect(l.v);
+      MailApp.sendEmail({ to: DESTINATAIRE, name: EXPEDITEUR, subject: '[Aperçu] ' + m.objet, body: m.texte, htmlBody: m.html });
+      message = 'Aperçu envoyé sur ' + DESTINATAIRE + '.';
+    } else if (['repondu', 'stop', 'relance'].indexOf(p.op) >= 0) {
+      feuille.getRange(l.numero, COL[p.op] + 1).setValue(p.valeur !== '0');
+    } else return repondre(false, 'action inconnue');
+    return repondre(true, message, { prospect: relire(l.numero) });
+  } catch (erreur) {
+    return repondre(false, erreur.message);
+  } finally {
+    verrou.releaseLock();
+  }
 }
 
 // Clipper vient de mettre une page en ligne : il inscrit le lien dans l'onglet « Prospects » (plus de copier-coller).
